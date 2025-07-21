@@ -31,9 +31,9 @@ export class CourseAPI {
 		searchTerm: string = ''
 	): Promise<Subject[]> {
 		try {
-			const response: ApiResponse<{ getSubjects: Subject[] }> =
+			const response: { getSubjects: Subject[] } =
 				await graphqlClient.request(GET_SUBJECTS, { term, searchTerm });
-			return response.data?.getSubjects || [];
+			return response.getSubjects || [];
 		} catch (error) {
 			console.error('Error fetching subjects:', error);
 			return [];
