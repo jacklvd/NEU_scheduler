@@ -29,10 +29,11 @@ export function CourseSearch() {
 
 	const handleSearch = () => {
 		if (!selectedTerm) {
-			alert('Please select a term first');
+			setErrorMessage('Please select a term first');
 			return;
 		}
 
+		setErrorMessage(''); // Clear error message
 		searchCourses({
 			term: selectedTerm,
 			subject: selectedSubject,
