@@ -10,7 +10,7 @@ try:
     debug_mode = settings.debug
 except Exception as e:
     print(f"Warning: Config import failed: {e}")
-    cors_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+    cors_origins = ["https://localhost:3000", "http://127.0.0.1:3000"]
     debug_mode = True
 
 app = FastAPI(
@@ -29,23 +29,23 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/api/")
 async def root():
     return {"message": "Welcome to the NEUCourseScheduler API!"}
 
 
-@app.get("/health")
+@app.get("/api/health")
 async def health_check():
     return {"status": "healthy", "service": "NEUCourseScheduler API"}
 
 
-@app.get("/test")
+@app.get("/api/test")
 async def test_endpoint():
     return {"message": "Server is running!", "status": "success"}
 
 
 # Include GraphQL router
-app.include_router(graphql_app, prefix="/graphql")
+app.include_router(graphql_app, prefix="/api/graphql")
 
 if __name__ == "__main__":
     import uvicorn

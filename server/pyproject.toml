@@ -5,7 +5,7 @@ description = "backend of neuscheduler"
 authors = [
     {name = "jacklvd",email = "vodanglong3103@gmail.com"}
 ]
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 readme = "README.md"
 requires-python = ">=3.13,<4.0"
 dependencies = [
