@@ -9,12 +9,15 @@
 		"lint": "next lint",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
-		"prepare": "husky"
+		"prepare": "cd .. && husky ./client/.husky"
 	},
 	"lint-staged": {
-		"*.{js,jsx,ts,tsx,json,md,css,scss}": [
-			"prettier --write --ignore-unknown",
-			"eslint --fix"
+		"*.{js,jsx,ts,tsx}": [
+			"prettier --write",
+			"eslint --fix --no-warn-ignored"
+		],
+		"*.{json,md,css,scss}": [
+			"prettier --write"
 		]
 	},
 	"dependencies": {

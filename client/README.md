@@ -1,36 +1,279 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEUscheduler Frontend
 
-## Getting Started
+React/Next.js frontend application for the NEUscheduler platform - an AI-powered academic planning tool for Northeastern University students.
 
-First, run the development server:
+## Overview
+
+The frontend provides an intuitive interface for students to:
+
+- Search and explore course catalogs
+- Generate optimized class schedules
+- Receive AI-powered course recommendations
+- Manage academic planning across semesters
+- Visualize schedule conflicts and preferences
+
+## Technology Stack
+
+- **Framework:** Next.js 15+ (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **UI Components:** Custom components with shadcn/ui
+- **State Management:** (To be implemented)
+- **API Communication:** GraphQL + REST API
+- **Font:** Geist font family
+
+## Project Structure
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+client/
+├── app/
+│   ├── favicon.ico
+│   ├── globals.css          # Global styles
+│   ├── layout.tsx          # Root layout component
+│   └── page.tsx            # Home page
+├── components/
+│   ├── magicui/           # Magic UI components
+│   │   └── ripple-button.tsx
+│   └── ui/                # Reusable UI components
+│       ├── avatar.tsx
+│       ├── breadcrumb.tsx
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── input.tsx
+│       ├── pagination.tsx
+│       ├── sonner.tsx
+│       └── tooltip.tsx
+├── public/                # Static assets
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── components.json        # shadcn/ui configuration
+├── eslint.config.mjs     # ESLint configuration
+├── next.config.ts        # Next.js configuration
+├── package.json          # Dependencies and scripts
+├── postcss.config.mjs    # PostCSS configuration
+├── README.md             # This file
+└── tsconfig.json         # TypeScript configuration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Installation & Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prerequisites
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18+
+- yarn (recommended) or npm
+- Backend server running (see [server README](../server/README.md))
 
-## Learn More
+### Quick Start
 
-To learn more about Next.js, take a look at the following resources:
+1. **Navigate to the client directory:**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   cd client
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Install dependencies:**
 
-## Deploy on Vercel
+   ```bash
+   yarn install
+   # or
+   npm install
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. **Set up environment variables:**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   Create a `.env.local` file in the client directory:
+
+   ```env
+   # API Configuration
+   NEXT_PUBLIC_API_URL=http://localhost:8000/api
+   NEXT_PUBLIC_GRAPHQL_URL=http://localhost:8000/api/graphql
+
+   # App Configuration
+   NEXT_PUBLIC_APP_NAME=NEUscheduler
+   NEXT_PUBLIC_APP_VERSION=1.0.0
+   ```
+
+4. **Run the development server:**
+
+   ```bash
+   yarn dev
+   # or
+   npm run dev
+   ```
+
+5. **Open your browser:**
+
+   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
+
+## Available Scripts
+
+```bash
+# Development
+yarn dev          # Start development server
+yarn build        # Build for production
+yarn start        # Start production server
+yarn lint         # Run ESLint
+yarn type-check   # Run TypeScript type checking
+
+# Package management
+yarn add <package>        # Add new dependency
+yarn add -D <package>     # Add dev dependency
+```
+
+## Development
+
+### Code Structure
+
+- **`app/`** - Next.js App Router pages and layouts
+- **`components/ui/`** - Reusable UI components (shadcn/ui based)
+- **`components/magicui/`** - Enhanced UI components with animations
+- **`public/`** - Static assets (images, icons, etc.)
+
+### Styling
+
+The project uses Tailwind CSS for styling with custom components from shadcn/ui:
+
+```bash
+# Add new shadcn/ui component
+npx shadcn-ui@latest add <component-name>
+```
+
+### API Integration
+
+The frontend communicates with the backend through:
+
+- **REST API:** For simple CRUD operations
+- **GraphQL:** For complex queries and real-time data
+
+Example API usage:
+
+```typescript
+// REST API call
+const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
+const data = await response.json();
+
+// GraphQL query (to be implemented)
+// const { data } = useQuery(GET_COURSES, { variables: { term: 'spring2024' } });
+```
+
+### Component Development
+
+Components follow the shadcn/ui pattern with Tailwind CSS:
+
+```typescript
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+export function CourseCard({ course }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{course.name}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{course.description}</p>
+        <Button variant="outline">Add to Schedule</Button>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+## Features (Planned)
+
+- **Course Search:** Advanced filtering and search capabilities
+- **Schedule Builder:** Drag-and-drop schedule creation
+- **AI Recommendations:** Intelligent course suggestions
+- **Conflict Detection:** Automatic schedule conflict resolution
+- **Responsive Design:** Mobile-first, responsive interface
+- **Dark Mode:** Theme switching support
+- **Real-time Updates:** Live data synchronization
+
+## Configuration
+
+### Next.js Configuration
+
+Key configurations in `next.config.ts`:
+
+- TypeScript support
+- Tailwind CSS integration
+- API proxy settings (if needed)
+- Build optimizations
+
+### Tailwind Configuration
+
+Custom theme extensions and component styles are configured in `tailwind.config.js`.
+
+## Deployment
+
+### Development Deployment
+
+```bash
+yarn build
+yarn start
+```
+
+### Production Deployment
+
+The application can be deployed to:
+
+- **Vercel** (recommended for Next.js)
+- **Netlify**
+- **Docker containers**
+- **Static hosting** (with `next export`)
+
+For Vercel deployment:
+
+1. Connect your GitHub repository to Vercel
+2. Set environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Module not found errors:**
+
+   ```bash
+   rm -rf node_modules package-lock.json yarn.lock
+   yarn install
+   ```
+
+2. **TypeScript errors:**
+
+   ```bash
+   yarn type-check
+   ```
+
+3. **Build errors:**
+   - Check environment variables are set
+   - Ensure backend API is accessible
+   - Verify all imports are correct
+
+### Development Tips
+
+- Use `yarn dev` for hot reloading during development
+- Check browser console for client-side errors
+- Use React Developer Tools for debugging
+- Ensure backend server is running on `http://localhost:8000`
+
+## Contributing
+
+1. Follow the existing code style and component patterns
+2. Use TypeScript for all new components
+3. Add appropriate prop types and JSDoc comments
+4. Test components in isolation when possible
+5. Follow the established folder structure
+
+## Backend API Integration
+
+The frontend integrates with the backend API endpoints:
+
+- **Health Check:** `GET /api/health`
+- **Course Search:** `GET /api/courses`
+- **GraphQL Endpoint:** `POST /api/graphql`
+
+Ensure the backend server is running before starting frontend development.

@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+#next
+client/.next/
+
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -57,7 +60,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+server/lib/
 lib64/
 parts/
 sdist/
