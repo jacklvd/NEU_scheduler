@@ -1,14 +1,51 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Client-side GraphQL utilities - no server-side code here
 import { GraphQLClient } from 'graphql-request';
 
 const GRAPHQL_ENDPOINT =
 	process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
 	'http://localhost:8000/api/graphql';
 
-export const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
-	headers: {
-		'Content-Type': 'application/json',
-	},
-});
+console.log('GraphQL endpoint:', GRAPHQL_ENDPOINT);
+
+// Create a wrapper around the GraphQL client to add better debugging
+class DebugGraphQLClient {
+	private client: GraphQLClient;
+
+	constructor(endpoint: string, options: any = {}) {
+		this.client = new GraphQLClient(endpoint, {
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				...options.headers,
+			},
+		});
+	}
+
+	async request(query: string, variables: any = {}) {
+		try {
+			console.log(`GraphQL Request to ${GRAPHQL_ENDPOINT}:`, {
+				query: query.slice(0, 200) + '...', // Truncate long queries in logs
+				variables,
+			});
+
+			const result = await this.client.request(query, variables);
+			console.log('GraphQL Response:', result);
+			return result;
+		} catch (error) {
+			console.error('GraphQL Request Failed:', {
+				endpoint: GRAPHQL_ENDPOINT,
+				query: query.slice(0, 200) + '...',
+				variables,
+				error,
+			});
+			throw error;
+		}
+	}
+}
+
+// Export the enhanced client
+export const graphqlClient = new DebugGraphQLClient(GRAPHQL_ENDPOINT);
 
 // GraphQL queries
 export const GET_TERMS = `

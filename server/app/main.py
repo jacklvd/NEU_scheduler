@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from app.graphql.schema import graphql_app
 
 # Import settings without causing validation errors
@@ -29,10 +30,10 @@ app.add_middleware(
 )
 
 
-@app.get("/api/")
+@app.get("/")
 async def root():
-    return {"message": "Welcome to the NEUCourseScheduler API!"}
-
+    """Redirect to API documentation"""
+    return RedirectResponse(url="/docs")
 
 @app.get("/api/health")
 async def health_check():

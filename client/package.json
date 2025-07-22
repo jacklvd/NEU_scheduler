@@ -21,7 +21,10 @@
 		]
 	},
 	"dependencies": {
+		"@auth/core": "^0.40.0",
+		"@hookform/resolvers": "^5.1.1",
 		"@radix-ui/react-avatar": "^1.1.10",
+		"@radix-ui/react-label": "^2.1.7",
 		"@radix-ui/react-slot": "^1.2.3",
 		"@radix-ui/react-tooltip": "^1.2.7",
 		"@tanstack/react-query": "^5.83.0",
@@ -32,11 +35,15 @@
 		"graphql-request": "^7.2.0",
 		"lucide-react": "^0.525.0",
 		"next": "15.4.1",
+		"next-auth": "^5.0.0-beta.29",
 		"next-themes": "^0.4.6",
 		"react": "19.1.0",
 		"react-dom": "19.1.0",
+		"react-hook-form": "^7.60.0",
 		"sonner": "^2.0.6",
-		"tailwind-merge": "^3.3.1"
+		"tailwind-merge": "^3.3.1",
+		"zod": "^4.0.5",
+		"zustand": "^5.0.6"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",

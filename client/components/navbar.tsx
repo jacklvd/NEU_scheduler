@@ -3,23 +3,27 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Search, Sparkles, Calendar, Home } from 'lucide-react';
 import { Button } from './ui/button';
+import { UserDropdown } from './auth/user-dropdown';
 
-export function Navigation() {
+export function Navbar() {
 	const pathname = usePathname();
+	const { data: session, status } = useSession();
 
 	const navItems = [
 		{ href: '/', label: 'Home', icon: Home },
-		{ href: '/courses', label: 'Course Search', icon: Search },
+		{ href: '/courses', label: 'Courses', icon: Search },
 		{ href: '/planner', label: 'AI Planner', icon: Sparkles },
-		{ href: '/schedule', label: 'My Schedule', icon: Calendar },
+		{ href: '/schedule', label: 'Schedule', icon: Calendar },
 	];
 
 	return (
 		<nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
 			<div className="container mx-auto px-4">
 				<div className="flex h-14 items-center justify-between">
+					{/* Logo */}
 					<div className="flex items-center space-x-8">
 						<Link href="/" className="flex items-center space-x-2">
 							<div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
@@ -30,6 +34,7 @@ export function Navigation() {
 							<span className="font-bold text-xl">Course Scheduler</span>
 						</Link>
 
+						{/* Desktop Navigation */}
 						<div className="hidden md:flex items-center space-x-6">
 							{navItems.map(item => {
 								const Icon = item.icon;
@@ -53,11 +58,22 @@ export function Navigation() {
 						</div>
 					</div>
 
+					{/* Auth Section */}
 					<div className="flex items-center space-x-4">
-						<Button variant="outline" size="sm">
-							Sign In
-						</Button>
-						<Button size="sm">Get Started</Button>
+						{status === 'loading' ? (
+							<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+						) : session ? (
+							<UserDropdown />
+						) : (
+							<div className="flex items-center space-x-2">
+								<Button asChild variant="outline" size="sm">
+									<Link href="/sign-in">Sign In</Link>
+								</Button>
+								<Button asChild size="sm">
+									<Link href="/sign-up">Sign Up</Link>
+								</Button>
+							</div>
+						)}
 					</div>
 				</div>
 

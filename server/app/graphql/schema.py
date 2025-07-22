@@ -1,12 +1,13 @@
 import strawberry
 from typing import List
 from app.graphql.resolvers.course_resolver import CourseQuery
+from app.graphql.resolvers.auth_resolver import AuthMutation, AuthQuery
 from app.graphql.types.schedule import SuggestedPlan, AcademicPlan, PlannedCourse
 from app.worker.tasks import generate_ai_suggestion
 
 
 @strawberry.type
-class Query(CourseQuery):
+class Query(CourseQuery, AuthQuery):
     @strawberry.field
     async def suggest_plan(self, interest: str, years: int = 2) -> List[SuggestedPlan]:
         """Generate AI-powered course plan suggestions"""
@@ -25,7 +26,7 @@ class Query(CourseQuery):
 
 
 @strawberry.type
-class Mutation:
+class Mutation(AuthMutation):
     @strawberry.mutation
     async def save_schedule(
         self, user_id: str, year: int, term: str, courses: List[str]
