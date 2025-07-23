@@ -10,6 +10,12 @@ Benefits over persistent storage:
 - Automatic cleanup of expired data
 - More secure (no persistent storage of sensitive codes)
 - Cost effective (no storage costs for temporary data)
+- Immediate removal after verification for enhanced security
+
+Security features:
+- OTPs are immediately deleted after successful verification
+- Expired OTPs are automatically cleaned up
+- Thread-safe operations for concurrent access
 """
 
 from datetime import datetime, timezone
@@ -20,7 +26,6 @@ class OTPRecord(NamedTuple):
     code: str
     purpose: str
     expires_at: datetime
-    is_used: bool
 
 class OTPCache:
     """In-memory cache for OTPs with automatic expiration"""
@@ -40,8 +45,7 @@ class OTPCache:
             self._cache[key] = OTPRecord(
                 code=code,
                 purpose=purpose,
-                expires_at=expires_at,
-                is_used=False
+                expires_at=expires_at
             )
     
     def verify_otp(self, email: str, code: str, purpose: str) -> bool:
@@ -63,16 +67,13 @@ class OTPCache:
                 del self._cache[key]  # Remove expired OTP
                 return False
             
-            # Check if already used
-            if otp_record.is_used:
-                return False
-            
             # Check code and purpose match
             if otp_record.code != code or otp_record.purpose != purpose:
                 return False
             
-            # Mark as used
-            self._cache[key] = otp_record._replace(is_used=True)
+            # Remove OTP immediately after successful verification
+            # This improves security and reduces memory usage
+            del self._cache[key]
             return True
     
     def _cleanup_expired(self) -> None:
@@ -91,13 +92,10 @@ class OTPCache:
         with self._lock:
             self._cleanup_expired()
             total = len(self._cache)
-            used = sum(1 for record in self._cache.values() if record.is_used)
-            active = total - used
             
             return {
                 "total_otps": total,
-                "active_otps": active,
-                "used_otps": used
+                "active_otps": total  # All cached OTPs are active (unused)
             }
 
 # Global cache instance
