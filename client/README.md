@@ -26,36 +26,55 @@ The frontend provides an intuitive interface for students to:
 
 ```bash
 client/
-├── app/
-│   ├── favicon.ico
-│   ├── globals.css          # Global styles
-│   ├── layout.tsx          # Root layout component
-│   └── page.tsx            # Home page
-├── components/
-│   ├── magicui/           # Magic UI components
+├── app/                    # Next.js App Router
+│   ├── courses/           # Course search and catalog pages
+│   ├── planner/          # Academic planning pages
+│   ├── schedule/         # Schedule management pages
+│   ├── favicon.ico       # App favicon
+│   ├── globals.css       # Global styles
+│   ├── layout.tsx        # Root layout component
+│   └── page.tsx          # Home page
+├── components/            # React components
+│   ├── auth/             # Authentication components
+│   ├── magicui/          # Magic UI components with animations
 │   │   └── ripple-button.tsx
-│   └── ui/                # Reusable UI components
-│       ├── avatar.tsx
-│       ├── breadcrumb.tsx
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── input.tsx
-│       ├── pagination.tsx
-│       ├── sonner.tsx
-│       └── tooltip.tsx
-├── public/                # Static assets
+│   ├── ui/               # Reusable UI components (shadcn/ui)
+│   │   ├── avatar.tsx
+│   │   ├── breadcrumb.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── input.tsx
+│   │   ├── pagination.tsx
+│   │   ├── sonner.tsx
+│   │   └── tooltip.tsx
+│   ├── ai-planner.tsx    # AI-powered planning component
+│   ├── course-search.tsx # Course search functionality
+│   └── navbar.tsx        # Navigation component
+├── lib/                  # Utility libraries
+│   ├── api/             # API client configurations
+│   ├── hooks/           # Custom React hooks
+│   └── utils.ts         # Utility functions
+├── public/              # Static assets
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── components.json        # shadcn/ui configuration
-├── eslint.config.mjs     # ESLint configuration
-├── next.config.ts        # Next.js configuration
-├── package.json          # Dependencies and scripts
-├── postcss.config.mjs    # PostCSS configuration
-├── README.md             # This file
-└── tsconfig.json         # TypeScript configuration
+├── types/               # TypeScript type definitions
+│   └── api.ts          # API type definitions
+├── .husky/             # Git hooks configuration
+├── .env                # Environment variables
+├── .prettierignore     # Prettier ignore rules
+├── .prettierrc         # Prettier configuration
+├── components.json     # shadcn/ui configuration
+├── eslint.config.mjs   # ESLint configuration
+├── next-env.d.ts       # Next.js TypeScript declarations
+├── next.config.ts      # Next.js configuration
+├── package.json        # Dependencies and scripts
+├── postcss.config.mjs  # PostCSS configuration
+├── README.md           # This file
+├── tsconfig.json       # TypeScript configuration
+└── yarn.lock           # Yarn lock file
 ```
 
 ## Installation & Setup

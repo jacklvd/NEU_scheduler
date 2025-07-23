@@ -2,7 +2,6 @@ from celery import Celery
 from app.worker.celery_app import celery_app
 import redis
 import json
-import os
 import openai
 from typing import List, Dict, Any
 from app.config import settings
@@ -22,7 +21,6 @@ def cache_courses(self, key: str, data: List[Dict[str, Any]]) -> bool:
     try:
         # Convert data to JSON string and cache for 1 hour
         redis_client.setex(key, 3600, json.dumps(data))
-        print(f"✅ Cached data with key: {key}")
         return True
     except Exception as e:
         print(f"❌ Error caching data: {e}")
@@ -74,7 +72,6 @@ def generate_ai_suggestion(self, interest: str, years: int = 2) -> List[Dict[str
         # Parse the response into structured data
         plan = parse_ai_response(content, years)
 
-        print(f"✅ Generated AI suggestion for {interest}")
         return plan
 
     except Exception as e:
@@ -181,7 +178,6 @@ def cleanup_cache() -> bool:
                 redis_client.delete(key)
                 cleaned += 1
 
-        print(f"✅ Cleaned up {cleaned} cache entries")
         return True
 
     except Exception as e:
