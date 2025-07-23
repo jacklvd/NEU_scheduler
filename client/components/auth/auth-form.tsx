@@ -296,7 +296,7 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 												...register_data,
 												graduationYear:
 													parseInt(e.target.value) ||
-													new Date().getFullYear() + 4,
+													new Date().getFullYear() + DEFAULT_YEARS_TO_GRADUATION,
 											})
 										}
 									/>
