@@ -19,7 +19,7 @@ class AuthService:
     def generate_jwt_token(data: Dict[str, Any]) -> str:
         """Generate JWT token"""
         to_encode = data.copy()
-        expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
         to_encode.update({"exp": expire})
         
         encoded_jwt = jwt.encode(
