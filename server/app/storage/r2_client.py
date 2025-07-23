@@ -85,8 +85,16 @@ class R2Client:
         id_key = f"users/id/{user_id}.json"
         
         # Store the same data in both locations
-        self._put_object(email_key, user_data)
-        self._put_object(id_key, user_data)
+        email_success = self._put_object(email_key, user_data)
+        id_success = self._put_object(id_key, user_data)
+        
+        if not email_success or not id_success:
+            # Rollback if one operation fails
+            if email_success:
+                self._delete_object(email_key)
+            if id_success:
+                self._delete_object(id_key)
+            raise Exception("Failed to create user: Inconsistent state detected.")
         
         return user_data
     
