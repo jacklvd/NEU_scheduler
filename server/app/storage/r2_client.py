@@ -68,7 +68,8 @@ class R2Client:
     def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new user"""
         # Generate unique user ID
-        user_id = f"user_{int(datetime.now(timezone.utc).timestamp() * 1000000)}"
+        import uuid
+        user_id = f"user_{uuid.uuid4()}"
         
         # Add timestamps and ID
         user_data.update({
