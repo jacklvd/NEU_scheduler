@@ -3,12 +3,11 @@ import string
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from app.storage.r2_client import r2_client
 from app.config import settings
 from app.services.email_factory import get_email_service
+from app.services.otp_cache import otp_cache
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class AuthService:
     @staticmethod
@@ -47,16 +46,12 @@ class AuthService:
     async def send_otp_email(email: str, purpose: str) -> bool:
         """Generate and send OTP via Mailtrap"""
         try:
-            # Clean up expired OTPs first
-            r2_client.cleanup_expired_otps(email)
-            
             # Generate OTP
             otp_code = AuthService.generate_otp(settings.otp_length)
             expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.otp_expire_minutes)
             
-            # Save OTP to R2
-            otp_id = r2_client.create_otp(email, otp_code, purpose, expires_at)
-            print(f"✅ OTP generated: {otp_code} for {email} (Purpose: {purpose})")
+            # Store OTP in cache (not persistent storage)
+            otp_cache.store_otp(email, otp_code, purpose, expires_at)
             
             # Get Mailtrap email service
             email_service = get_email_service()
@@ -127,9 +122,10 @@ The NEU Course Scheduler Team
             )
             
             if success:
-                print(f"✅ Email sent successfully to {email}")
-                print(f"🔍 Check your Mailtrap inbox: https://mailtrap.io/inboxes")
+                # Keep basic success logging for email operations
+                pass
             else:
+                # Keep error logging
                 print(f"❌ Failed to send email to {email}")
             
             return success
@@ -142,18 +138,10 @@ The NEU Course Scheduler Team
     def verify_otp(email: str, code: str, purpose: str) -> bool:
         """Verify OTP code"""
         try:
-            # Find valid OTP
-            otp_data = r2_client.get_valid_otp(email, code, purpose)
+            # Use cache instead of R2 storage
+            is_valid = otp_cache.verify_otp(email, code, purpose)
             
-            if not otp_data:
-                print(f"❌ Invalid OTP: {code} for {email} (Purpose: {purpose})")
-                return False
-            
-            # Mark OTP as used
-            r2_client.mark_otp_used(email, otp_data["id"])
-            print(f"✅ OTP verified successfully for {email}")
-            
-            return True
+            return is_valid
             
         except Exception as e:
             print(f"❌ Error verifying OTP: {e}")
@@ -167,7 +155,6 @@ The NEU Course Scheduler Team
         # Check if user already exists (even though we check during initial OTP request)
         existing_user = r2_client.get_user_by_email(email.lower())
         if existing_user:
-            print(f"⚠️ User with email {email} already exists")
             return existing_user
         
         user_data = {
@@ -181,6 +168,7 @@ The NEU Course Scheduler Team
         }
         
         created_user = r2_client.create_user(user_data)
+        # Keep essential user creation logging
         print(f"✅ User created: {email} (ID: {created_user['id']})")
         return created_user
     
@@ -193,19 +181,3 @@ The NEU Course Scheduler Team
     def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
         """Get user by ID"""
         return r2_client.get_user_by_id(user_id)
-    
-    @staticmethod
-    def create_session(user_id: str) -> str:
-        """Create user session and return token"""
-        token = secrets.token_urlsafe(32)
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
-        
-        r2_client.create_session(user_id, token, expires_at)
-        print(f"✅ Session created for user {user_id}")
-        
-        return token
-    
-    @staticmethod
-    def verify_session(token: str) -> Optional[Dict[str, Any]]:
-        """Verify session token"""
-        return r2_client.get_session(token)

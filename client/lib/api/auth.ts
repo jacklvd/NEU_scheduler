@@ -50,7 +50,7 @@ export class AuthAPI {
 		email: string,
 		code: string,
 		purpose: 'login' | 'register',
-		registerData?: RegisterData
+		register_data?: RegisterData
 	): Promise<AuthResponse> {
 		const mutation = `
       mutation VerifyOTP($input: VerifyOTPInput!) {
@@ -79,16 +79,14 @@ export class AuthAPI {
 			purpose,
 		};
 
-		if (purpose === 'register' && registerData) {
-			// Convert registerData to snake_case for the GraphQL API
-			// The server expects first_name, last_name, student_id, major, graduation_year
-			// Be explicit with field names and don't use spread operator to avoid unexpected fields
+		if (purpose === 'register' && register_data) {
+			// Send snake_case field names to match the GraphQL schema
 			input.register_data = {
-				first_name: registerData.firstName,
-				last_name: registerData.lastName,
-				student_id: registerData.studentId,
-				major: registerData.major,
-				graduation_year: registerData.graduationYear,
+				firstName: register_data.firstName,
+				lastName: register_data.lastName,
+				studentId: register_data.studentId,
+				major: register_data.major,
+				graduationYear: register_data.graduationYear,
 			};
 
 			console.log('Preparing GraphQL input:', JSON.stringify(input));
@@ -201,3 +199,6 @@ export class AuthAPI {
 		}
 	}
 }
+
+// Export the class as the default export as well for better compatibility
+export default AuthAPI;

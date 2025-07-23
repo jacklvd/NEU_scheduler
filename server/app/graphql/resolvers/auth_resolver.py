@@ -1,7 +1,8 @@
 import strawberry
 from typing import Optional
+from datetime import datetime
 from app.services.auth import AuthService
-from app.graphql.types.user import User, AuthResponse, LoginInput, VerifyOTPInput, RegisterInput
+from app.graphql.types.user import User, AuthResponse, VerifyOTPInput
 
 @strawberry.type
 class AuthMutation:
@@ -59,14 +60,10 @@ class AuthMutation:
     async def verifyOtp(self, input: VerifyOTPInput) -> AuthResponse:
         """Verify OTP and complete login/registration"""
         try:
-            print(f"🔍 Verifying OTP: email={input.email}, purpose={input.purpose}, code_length={len(input.code) if input.code else 0}")
-            print(f"📋 Registration data provided: {input.register_data is not None}")
-            
             # Verify OTP
             is_valid = AuthService.verify_otp(input.email, input.code, input.purpose)
             
             if not is_valid:
-                print(f"❌ OTP verification failed: email={input.email}, purpose={input.purpose}")
                 return AuthResponse(
                     success=False,
                     message="Invalid or expired verification code"
@@ -76,31 +73,25 @@ class AuthMutation:
             
             # Handle registration
             if input.purpose == 'register':
-                if not input.register_data:
-                    print(f"❌ Missing registration data for email={input.email}")
+                if not input.registerData:
                     return AuthResponse(
                         success=False,
                         message="Registration data is required for registration"
                     )
                 
-                print(f"✅ OTP verified, creating user for email={input.email}")
-                print(f"📋 Registration data: first_name={input.register_data.firstName}, last_name={input.register_data.lastName}")
-                
                 # Only store user data after OTP verification has succeeded
                 # This ensures we don't store users until they're verified
                 try:
-                    # Use the snake_case fields directly
+                    # Use camelCase fields from the input and convert to snake_case for the service
                     user_data = AuthService.create_user(
                         email=input.email,
-                        first_name=input.register_data.first_name,
-                        last_name=input.register_data.last_name,
-                        student_id=input.register_data.student_id,
-                        graduation_year=input.register_data.graduation_year,
-                        major=input.register_data.major
+                        first_name=input.registerData.firstName,
+                        last_name=input.registerData.lastName,
+                        student_id=input.registerData.studentId,
+                        graduation_year=input.registerData.graduationYear,
+                        major=input.registerData.major
                     )
-                    print(f"✅ User created successfully: id={user_data.get('id')}")
                 except Exception as create_error:
-                    print(f"❌ Error creating user: {create_error}")
                     return AuthResponse(
                         success=False,
                         message=f"Error creating user: {str(create_error)}"
@@ -108,15 +99,12 @@ class AuthMutation:
             
             # Handle login
             elif input.purpose == 'login':
-                print(f"✅ OTP verified for login, retrieving user data for email={input.email}")
                 user_data = AuthService.get_user_by_email(input.email)
                 if not user_data:
-                    print(f"❌ User not found for login: email={input.email}")
                     return AuthResponse(
                         success=False,
                         message="User not found"
                     )
-                print(f"✅ User found for login: id={user_data.get('id')}")
             
             # Generate JWT token
             try:
@@ -125,21 +113,18 @@ class AuthMutation:
                     "email": user_data["email"],
                     "purpose": input.purpose
                 }
-                print(f"🔑 Generating token for user: id={user_data['id']}")
                 token = AuthService.generate_jwt_token(token_data)
-                
-                # Create session
-                print(f"🔒 Creating session for user: id={user_data['id']}")
-                session_token = AuthService.create_session(user_data["id"])
-                print(f"✅ Session created successfully")
             except Exception as auth_error:
-                print(f"❌ Error during authentication: {auth_error}")
                 return AuthResponse(
                     success=False,
                     message=f"Authentication error: {str(auth_error)}"
                 )
             
             # Convert to GraphQL user type
+            # Convert ISO string back to datetime object for GraphQL
+            created_at_str = user_data["created_at"]
+            created_at_dt = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+            
             graphql_user = User(
                 id=user_data["id"],
                 email=user_data["email"],
@@ -149,7 +134,7 @@ class AuthMutation:
                 graduationYear=user_data.get("graduation_year"),
                 major=user_data.get("major"),
                 isVerified=user_data.get("is_verified", True),
-                createdAt=user_data["created_at"]
+                createdAt=created_at_dt
             )
             
             message = "Registration successful!" if input.purpose == 'register' else "Login successful!"
@@ -184,6 +169,10 @@ class AuthQuery:
             if not user_data:
                 return None
             
+            # Convert ISO string back to datetime object for GraphQL
+            created_at_str = user_data["created_at"]
+            created_at_dt = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+            
             return User(
                 id=user_data["id"],
                 email=user_data["email"],
@@ -193,7 +182,7 @@ class AuthQuery:
                 graduationYear=user_data.get("graduation_year"),
                 major=user_data.get("major"),
                 isVerified=user_data.get("is_verified", True),
-                createdAt=user_data["created_at"]
+                createdAt=created_at_dt
             )
             
         except Exception as e:

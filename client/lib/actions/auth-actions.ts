@@ -11,9 +11,9 @@ export async function verifyOTP(
 	email: string,
 	code: string,
 	purpose: 'login' | 'register',
-	registerData?: RegisterData
+	register_data?: RegisterData
 ) {
-	return await AuthAPI.verifyOTP(email, code, purpose, registerData);
+	return await AuthAPI.verifyOTP(email, code, purpose, register_data);
 }
 
 export async function getCurrentUser(token: string) {

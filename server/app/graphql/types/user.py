@@ -34,36 +34,12 @@ class AuthResponse:
 
 
 @strawberry.input
-class LoginInput:
-    email: str
-    password: str
-
-
-@strawberry.input
 class RegisterInput:
-    # These are the fields that actually come from the client GraphQL API
-    first_name: str
-    last_name: str
-    student_id: Optional[str] = None
+    firstName: str
+    lastName: str
+    studentId: Optional[str] = None
     major: Optional[str] = None
-    graduation_year: Optional[int] = None
-    
-    # Map the fields back to camelCase for Python code usage if needed
-    @property
-    def firstName(self) -> str:
-        return self.first_name
-        
-    @property
-    def lastName(self) -> str:
-        return self.last_name
-        
-    @property
-    def studentId(self) -> Optional[str]:
-        return self.student_id
-        
-    @property
-    def graduationYear(self) -> Optional[int]:
-        return self.graduation_year
+    graduationYear: Optional[int] = None
 
 
 @strawberry.input

@@ -1,5 +1,5 @@
 import NextAuth from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import Credentials from 'next-auth/providers/credentials';
 import { AuthAPI } from '@/lib/api/auth';
 import type { DefaultSession } from 'next-auth';
 
@@ -46,7 +46,7 @@ declare module '@auth/core/jwt' {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
 	providers: [
-		CredentialsProvider({
+		Credentials({
 			id: 'otp-auth',
 			name: 'OTP Authentication',
 			credentials: {
@@ -70,11 +70,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				}
 
 				try {
+					console.log('Starting OTP verification with GraphQL API...');
+
 					const registerData =
 						credentials.purpose === 'register'
 							? {
-									// Only pass camelCase field names to the API
-									// The API client will handle conversion to snake_case
 									firstName: credentials.firstName as string,
 									lastName: credentials.lastName as string,
 									studentId: (credentials.studentId as string) || undefined,
@@ -85,6 +85,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 								}
 							: undefined;
 
+					console.log('Calling AuthAPI.verifyOTP with:', {
+						email: credentials.email,
+						purpose: credentials.purpose,
+						hasRegisterData: !!registerData,
+					});
+
 					const response = await AuthAPI.verifyOTP(
 						credentials.email as string,
 						credentials.code as string,
@@ -92,18 +98,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 						registerData
 					);
 
+					console.log('AuthAPI response:', response);
+
 					if (response.success && response.user) {
-						// Handle both camelCase and snake_case field names from response
 						const user = response.user;
 						return {
 							id: user.id,
 							email: user.email,
-							firstName: user.firstName || user.first_name,
-							lastName: user.lastName || user.last_name,
-							studentId: user.studentId || user.student_id,
-							major: user.major,
-							graduationYear: user.graduationYear || user.graduation_year,
-							isVerified: user.isVerified || user.is_verified,
+							firstName: user.firstName || '',
+							lastName: user.lastName || '',
+							studentId: user.studentId || undefined,
+							major: user.major || undefined,
+							graduationYear: user.graduationYear || undefined,
+							isVerified: user.isVerified ?? true,
 						};
 					}
 
@@ -119,8 +126,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	],
 	session: {
 		strategy: 'jwt',
-		maxAge: 4 * 60 * 60,
-		updateAge: 60 * 30,
+		maxAge: 4 * 60 * 60, // 4 hours
+		updateAge: 60 * 30, // 30 minutes
 	},
 	jwt: {
 		maxAge: 60 * 60, // 1 hour
@@ -128,15 +135,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
-				// Make sure we have all required fields
 				token.id = user.id;
 				token.firstName = user.firstName || '';
 				token.lastName = user.lastName || '';
 				token.studentId = user.studentId;
 				token.major = user.major;
 				token.graduationYear = user.graduationYear;
-				token.isVerified =
-					typeof user.isVerified === 'boolean' ? user.isVerified : true;
+				token.isVerified = user.isVerified ?? true;
 			}
 			return token;
 		},
@@ -147,14 +152,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				session.user.lastName = token.lastName as string;
 				session.user.studentId = token.studentId as string | undefined;
 				session.user.major = token.major as string | undefined;
-				session.user.graduationYear =
-					typeof token.graduationYear === 'number'
-						? token.graduationYear
-						: typeof token.graduationYear === 'string'
-							? parseInt(token.graduationYear)
-							: undefined;
-				session.user.isVerified =
-					typeof token.isVerified === 'boolean' ? token.isVerified : true;
+				session.user.graduationYear = token.graduationYear as
+					| number
+					| undefined;
+				session.user.isVerified = token.isVerified as boolean;
 			}
 			return session;
 		},
@@ -164,3 +165,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 		error: '/error',
 	},
 });
+
+export const config = {
+	matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};

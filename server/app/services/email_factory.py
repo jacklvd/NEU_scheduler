@@ -14,6 +14,5 @@ def get_email_service() -> EmailServiceProtocol:
             "❌ Mailtrap credentials missing! Please add MAIL_USERNAME and MAIL_PASSWORD to your .env file"
         )
     
-    print("📧 Using Mailtrap Sandbox Email Service")
     from app.services.email import MailtrapEmailService
     return MailtrapEmailService()

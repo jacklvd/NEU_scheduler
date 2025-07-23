@@ -1,14 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Mail, KeyRound, AlertCircle } from 'lucide-react';
-import * as AuthAPI from '@/lib/api/auth';
 import { toast } from 'sonner';
 import {
 	requestOTP as requestOTPAction,
@@ -38,7 +35,7 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 	const [otp, setOtp] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState('');
-	const [registerData, setRegisterData] = useState<RegisterData>({
+	const [register_data, setRegister_data] = useState<RegisterData>({
 		firstName: '',
 		lastName: '',
 		studentId: '',
@@ -79,7 +76,7 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 		}
 
 		if (mode === 'register') {
-			if (!registerData.firstName || !registerData.lastName) {
+			if (!register_data.firstName || !register_data.lastName) {
 				setError('First name and last name are required');
 				return;
 			}
@@ -92,56 +89,40 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 			console.log('Verifying OTP with mode:', mode);
 			console.log(
 				'Register data:',
-				mode === 'register' ? JSON.stringify(registerData) : 'N/A'
+				mode === 'register' ? JSON.stringify(register_data) : 'N/A'
 			);
 
-			const credentials: any = {
+			// Use the direct GraphQL API call instead of NextAuth
+			const result = await verifyOTPAction(
 				email,
-				code: otp,
-				purpose: mode,
-			};
+				otp,
+				mode,
+				mode === 'register' ? register_data : undefined
+			);
 
-			if (mode === 'register') {
-				// Use snake_case fields for the server
-				// Ensure all field names match what's expected in RegisterInput
-				credentials.register_data = {
-					first_name: registerData.firstName,
-					last_name: registerData.lastName,
-					student_id: registerData.studentId,
-					major: registerData.major,
-					graduation_year: registerData.graduationYear,
-				};
-			}
-
-			// Sign in using NextAuth
-			const result = (await signIn('otp-auth', {
-				...credentials,
-				redirect: false,
-			})) as { error?: string; ok?: boolean } | undefined;
-
-			if (result?.error) {
-				console.error('Sign-in error:', result.error);
-				setError(result.error);
-			} else if (result?.ok) {
-				// Wait for session to be updated
-				await getSession();
+			if (result.success) {
 				toast.success(
 					mode === 'register'
 						? 'Account created successfully!'
 						: 'Signed in successfully!'
 				);
-				router.push('/');
-				router.refresh();
+
+				// If we have a token, we could store it or handle the user session
+				if (result.token && result.user) {
+					// For now, just redirect to home page
+					// In a real app, you'd want to set up the session properly
+					router.push('/');
+					router.refresh();
+				}
 			} else {
-				console.error('Sign-in failed with no specific error');
-				setError('Authentication failed - no response from server');
+				setError(result.message || 'Verification failed');
 			}
 		} catch (error) {
-			console.error('Exception during sign-in:', error);
+			console.error('Exception during OTP verification:', error);
 			setError(
 				error instanceof Error
-					? `Authentication error: ${error.message}`
-					: 'Authentication failed. Please try again.'
+					? `Verification error: ${error.message}`
+					: 'Verification failed. Please try again.'
 			);
 		} finally {
 			setIsLoading(false);
@@ -153,20 +134,6 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 		setStep('email');
 		setError('');
 		setOtp('');
-	};
-
-	const resetForm = () => {
-		setStep('email');
-		setEmail('');
-		setOtp('');
-		setError('');
-		setRegisterData({
-			firstName: '',
-			lastName: '',
-			studentId: '',
-			major: '',
-			graduationYear: new Date().getFullYear() + 4,
-		});
 	};
 
 	return (
@@ -258,10 +225,10 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 										</label>
 										<Input
 											placeholder="First name"
-											value={registerData.firstName}
+											value={register_data.firstName}
 											onChange={e =>
-												setRegisterData({
-													...registerData,
+												setRegister_data({
+													...register_data,
 													firstName: e.target.value,
 												})
 											}
@@ -273,10 +240,10 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 										</label>
 										<Input
 											placeholder="Last name"
-											value={registerData.lastName}
+											value={register_data.lastName}
 											onChange={e =>
-												setRegisterData({
-													...registerData,
+												setRegister_data({
+													...register_data,
 													lastName: e.target.value,
 												})
 											}
@@ -290,10 +257,10 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 									</label>
 									<Input
 										placeholder="e.g., 002123456"
-										value={registerData.studentId}
+										value={register_data.studentId}
 										onChange={e =>
-											setRegisterData({
-												...registerData,
+											setRegister_data({
+												...register_data,
 												studentId: e.target.value,
 											})
 										}
@@ -306,10 +273,10 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 									</label>
 									<Input
 										placeholder="e.g., Computer Science"
-										value={registerData.major}
+										value={register_data.major}
 										onChange={e =>
-											setRegisterData({
-												...registerData,
+											setRegister_data({
+												...register_data,
 												major: e.target.value,
 											})
 										}
@@ -323,10 +290,10 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 									<Input
 										type="number"
 										placeholder="2025"
-										value={registerData.graduationYear || ''}
+										value={register_data.graduationYear || ''}
 										onChange={e =>
-											setRegisterData({
-												...registerData,
+											setRegister_data({
+												...register_data,
 												graduationYear:
 													parseInt(e.target.value) ||
 													new Date().getFullYear() + 4,

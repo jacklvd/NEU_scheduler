@@ -36,7 +36,7 @@ export default function AuthErrorPage() {
 				<p className="mt-2 text-sm text-muted-foreground">{errorMessage}</p>
 			</div>
 			<Button asChild className="w-full">
-				<Link href="/auth/sign-in">Try Again</Link>
+				<Link href="/sign-in">Try Again</Link>
 			</Button>
 		</div>
 	);

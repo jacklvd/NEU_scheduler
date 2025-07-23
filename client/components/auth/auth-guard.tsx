@@ -22,7 +22,7 @@ export function AuthGuard({
 		if (status === 'loading') return; // Still loading
 
 		if (requireAuth && !session) {
-			router.push('/auth/signin');
+			router.push('/sign-in');
 			return;
 		}
 	}, [session, status, requireAuth, router]);

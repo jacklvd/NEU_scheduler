@@ -47,8 +47,6 @@ class MailtrapEmailService:
             await self.fast_mail.send_message(email_message)
             
             logger.info(f"📧 Email sent successfully to {to_email} via Mailtrap")
-            print(f"📧 Email sent to Mailtrap inbox: {to_email}")
-            print(f"🔍 Check your Mailtrap inbox at: https://mailtrap.io/inboxes")
             
             return True
             
@@ -56,26 +54,4 @@ class MailtrapEmailService:
             logger.error(f"❌ Mailtrap email failed: {e}")
             print(f"❌ Failed to send email via Mailtrap: {e}")
             
-            # Show helpful debug info
-            self._show_debug_info(to_email, subject, message)
-            
             return False
-    
-    def _show_debug_info(self, to_email: str, subject: str, message: str):
-        """Show debug info when email fails"""
-        print("\n" + "🔧 " + "="*60)
-        print("DEBUG: Email Configuration")
-        print("="*64)
-        print(f"MAIL_SERVER: {settings.mail_server}")
-        print(f"MAIL_PORT: {settings.mail_port}")
-        print(f"MAIL_USERNAME: {settings.mail_username}")
-        print(f"MAIL_FROM: {settings.mail_from}")
-        print(f"TO_EMAIL: {to_email}")
-        print(f"SUBJECT: {subject}")
-        print("="*64)
-        print("💡 Check:")
-        print("1. Mailtrap credentials are correct")
-        print("2. Mailtrap account is active")  
-        print("3. Internet connection is working")
-        print("4. No firewall blocking SMTP")
-        print("="*64 + "\n")
