@@ -57,7 +57,7 @@ class Settings(BaseSettings):
     nu_banner_base_url: str = API_BASE
     # JWT configuration
     jwt_secret_key: str = JWT_SECRET_KEY
-    jwt_algorithm: str = "HS256"
+    jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     jwt_expire_minutes: int = JWT_EXPIRE_MINUTES
     # Mailtrap configuration
     mail_username: str = MAIL_USERNAME
