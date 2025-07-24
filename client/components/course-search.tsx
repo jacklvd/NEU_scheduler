@@ -22,6 +22,7 @@ export function CourseSearch() {
 	const [selectedTerm, setSelectedTerm] = useState('');
 	const [selectedSubject, setSelectedSubject] = useState('');
 	const [courseNumber, setCourseNumber] = useState('');
+	const [errorMessage, setErrorMessage] = useState('');
 
 	const { terms, loading: termsLoading } = useTerms();
 	const { subjects, loading: subjectsLoading } = useSubjects(selectedTerm);
@@ -45,13 +46,13 @@ export function CourseSearch() {
 	return (
 		<div className="space-y-6">
 			{/* Search Form */}
-			<Card>
-				<CardHeader>
+			<Card className="border-northeastern-gray-light">
+				<CardHeader className="bg-northeastern-red text-northeastern-white">
 					<CardTitle className="flex items-center gap-2">
 						<Search className="h-5 w-5" />
 						Course Search
 					</CardTitle>
-					<CardDescription>
+					<CardDescription className="text-northeastern-white/90">
 						Search for courses by term, subject, and course number
 					</CardDescription>
 				</CardHeader>
@@ -112,7 +113,7 @@ export function CourseSearch() {
 							<Button
 								onClick={handleSearch}
 								disabled={!selectedTerm || coursesLoading}
-								className="w-full"
+								className="w-full bg-northeastern-red hover:bg-northeastern-red/90 text-northeastern-white"
 							>
 								{coursesLoading ? (
 									<Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -123,13 +124,18 @@ export function CourseSearch() {
 							</Button>
 						</div>
 					</div>
+					{errorMessage && (
+						<div className="mt-4 p-3 bg-northeastern-red/10 border border-northeastern-red/20 rounded-md">
+							<p className="text-northeastern-red text-sm">{errorMessage}</p>
+						</div>
+					)}
 				</CardContent>
 			</Card>
 
 			{/* Results */}
 			{courses.length > 0 && (
-				<Card>
-					<CardHeader>
+				<Card className="border-northeastern-gray-light">
+					<CardHeader className="bg-northeastern-blue text-northeastern-white">
 						<CardTitle>
 							Search Results ({courses.length} courses found)
 						</CardTitle>
@@ -149,18 +155,20 @@ export function CourseSearch() {
 
 function CourseCard({ course }: { course: Class }) {
 	return (
-		<Card className="hover:shadow-md transition-shadow">
+		<Card className="hover:shadow-md transition-shadow border-northeastern-gray-light hover:border-northeastern-blue">
 			<CardContent className="p-4">
 				<div className="flex justify-between items-start mb-2">
 					<div>
-						<h3 className="font-semibold text-lg">
+						<h3 className="font-semibold text-lg text-northeastern-black">
 							{course.subject} {course.courseNumber} - {course.title}
 						</h3>
-						<p className="text-sm text-muted-foreground">CRN: {course.crn}</p>
+						<p className="text-sm text-northeastern-gray">CRN: {course.crn}</p>
 					</div>
 					<div className="text-right">
-						<p className="text-sm font-medium">{course.credits} credits</p>
-						<p className="text-sm text-muted-foreground">
+						<p className="text-sm font-medium text-northeastern-red">
+							{course.credits} credits
+						</p>
+						<p className="text-sm text-northeastern-gray">
 							{course.enrollment}/{course.enrollmentCap} enrolled
 						</p>
 					</div>
@@ -168,17 +176,29 @@ function CourseCard({ course }: { course: Class }) {
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
 					<div>
-						<span className="font-medium">Instructor:</span>
-						<p>{course.instructor || 'TBA'}</p>
+						<span className="font-medium text-northeastern-black">
+							Instructor:
+						</span>
+						<p className="text-northeastern-gray">
+							{course.instructor || 'TBA'}
+						</p>
 					</div>
 					<div>
-						<span className="font-medium">Schedule:</span>
-						<p>{course.meetingDays || 'TBA'}</p>
-						<p>{course.meetingTimes || 'TBA'}</p>
+						<span className="font-medium text-northeastern-black">
+							Schedule:
+						</span>
+						<p className="text-northeastern-gray">
+							{course.meetingDays || 'TBA'}
+						</p>
+						<p className="text-northeastern-gray">
+							{course.meetingTimes || 'TBA'}
+						</p>
 					</div>
 					<div>
-						<span className="font-medium">Location:</span>
-						<p>{course.location || 'TBA'}</p>
+						<span className="font-medium text-northeastern-black">
+							Location:
+						</span>
+						<p className="text-northeastern-gray">{course.location || 'TBA'}</p>
 					</div>
 				</div>
 			</CardContent>

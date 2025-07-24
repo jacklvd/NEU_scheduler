@@ -35,6 +35,7 @@ declare module 'next-auth' {
 declare module '@auth/core/jwt' {
 	interface JWT {
 		id: string;
+		email: string;
 		firstName: string;
 		lastName: string;
 		studentId?: string;
@@ -46,14 +47,61 @@ declare module '@auth/core/jwt' {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
 	providers: [
+		// Sign In Provider
 		Credentials({
-			id: 'otp-auth',
-			name: 'OTP Authentication',
+			id: 'signin',
+			name: 'Sign In',
 			credentials: {
 				email: { label: 'Email', type: 'email' },
 				code: { label: 'Verification Code', type: 'text' },
-				purpose: { label: 'Purpose', type: 'text' },
-				// Registration fields
+			},
+			async authorize(credentials) {
+				if (!credentials?.email || !credentials?.code) {
+					throw new Error('Missing email or verification code');
+				}
+
+				try {
+					const response = await AuthAPI.verifyOTP(
+						credentials.email as string,
+						credentials.code as string,
+						'login'
+					);
+
+					if (response.success && response.user) {
+						const user = response.user;
+
+						// Map snake_case server fields to camelCase NextAuth fields
+						const mappedUser = {
+							id: user.id,
+							email: user.email,
+							firstName: user.first_name || user.firstName || '',
+							lastName: user.last_name || user.lastName || '',
+							studentId: user.student_id || user.studentId || undefined,
+							major: user.major || undefined,
+							graduationYear:
+								user.graduation_year || user.graduationYear || undefined,
+							isVerified: user.is_verified ?? user.isVerified ?? true,
+						};
+
+						return mappedUser;
+					}
+
+					throw new Error(response.message || 'Authentication failed');
+				} catch (error) {
+					console.error('Sign in error:', error);
+					throw new Error(
+						error instanceof Error ? error.message : 'Authentication failed'
+					);
+				}
+			},
+		}),
+		// Registration Provider
+		Credentials({
+			id: 'register',
+			name: 'Register',
+			credentials: {
+				email: { label: 'Email', type: 'email' },
+				code: { label: 'Verification Code', type: 'text' },
 				firstName: { label: 'First Name', type: 'text' },
 				lastName: { label: 'Last Name', type: 'text' },
 				studentId: { label: 'Student ID', type: 'text' },
@@ -64,61 +112,51 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				if (
 					!credentials?.email ||
 					!credentials?.code ||
-					!credentials?.purpose
+					!credentials?.firstName ||
+					!credentials?.lastName
 				) {
-					throw new Error('Missing required credentials');
+					throw new Error('Missing required registration information');
 				}
 
 				try {
-					console.log('Starting OTP verification with GraphQL API...');
-
-					const registerData =
-						credentials.purpose === 'register'
-							? {
-									firstName: credentials.firstName as string,
-									lastName: credentials.lastName as string,
-									studentId: (credentials.studentId as string) || undefined,
-									major: (credentials.major as string) || undefined,
-									graduationYear: credentials.graduationYear
-										? parseInt(credentials.graduationYear as string)
-										: undefined,
-								}
-							: undefined;
-
-					console.log('Calling AuthAPI.verifyOTP with:', {
-						email: credentials.email,
-						purpose: credentials.purpose,
-						hasRegisterData: !!registerData,
-					});
+					const registerData = {
+						firstName: credentials.firstName as string,
+						lastName: credentials.lastName as string,
+						studentId: (credentials.studentId as string) || undefined,
+						major: (credentials.major as string) || undefined,
+						graduationYear: credentials.graduationYear
+							? parseInt(credentials.graduationYear as string)
+							: undefined,
+					};
 
 					const response = await AuthAPI.verifyOTP(
 						credentials.email as string,
 						credentials.code as string,
-						credentials.purpose as 'login' | 'register',
+						'register',
 						registerData
 					);
 
-					console.log('AuthAPI response:', response);
-
 					if (response.success && response.user) {
 						const user = response.user;
+						// Map snake_case server fields to camelCase NextAuth fields
 						return {
 							id: user.id,
 							email: user.email,
-							firstName: user.firstName || '',
-							lastName: user.lastName || '',
-							studentId: user.studentId || undefined,
+							firstName: user.first_name || user.firstName || '',
+							lastName: user.last_name || user.lastName || '',
+							studentId: user.student_id || user.studentId || undefined,
 							major: user.major || undefined,
-							graduationYear: user.graduationYear || undefined,
-							isVerified: user.isVerified ?? true,
+							graduationYear:
+								user.graduation_year || user.graduationYear || undefined,
+							isVerified: user.is_verified ?? user.isVerified ?? true,
 						};
 					}
 
-					throw new Error(response.message || 'Authentication failed');
+					throw new Error(response.message || 'Registration failed');
 				} catch (error) {
-					console.error('Auth error:', error);
+					console.error('Registration error:', error);
 					throw new Error(
-						error instanceof Error ? error.message : 'Authentication failed'
+						error instanceof Error ? error.message : 'Registration failed'
 					);
 				}
 			},
@@ -136,6 +174,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 		async jwt({ token, user }) {
 			if (user) {
 				token.id = user.id;
+				token.email = user.email;
 				token.firstName = user.firstName || '';
 				token.lastName = user.lastName || '';
 				token.studentId = user.studentId;
@@ -157,6 +196,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 					| undefined;
 				session.user.isVerified = token.isVerified as boolean;
 			}
+
 			return session;
 		},
 	},
@@ -165,7 +205,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 		error: '/error',
 	},
 });
-
-export const config = {
-	matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-};

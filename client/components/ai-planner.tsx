@@ -29,13 +29,13 @@ export function AIPlannerComponent() {
 	return (
 		<div className="space-y-6">
 			{/* Input Form */}
-			<Card>
-				<CardHeader>
+			<Card className="border-northeastern-gray-light">
+				<CardHeader className="bg-northeastern-orange text-northeastern-white">
 					<CardTitle className="flex items-center gap-2">
 						<Sparkles className="h-5 w-5" />
 						AI Course Planner
 					</CardTitle>
-					<CardDescription>
+					<CardDescription className="text-northeastern-white/90">
 						Get personalized course recommendations based on your interests
 					</CardDescription>
 				</CardHeader>
@@ -66,7 +66,7 @@ export function AIPlannerComponent() {
 					<Button
 						onClick={handleGeneratePlan}
 						disabled={loading}
-						className="w-full"
+						className="w-full bg-northeastern-orange hover:bg-northeastern-orange/90 text-northeastern-white"
 					>
 						{loading ? (
 							<Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -80,38 +80,44 @@ export function AIPlannerComponent() {
 
 			{/* Error Display */}
 			{error && (
-				<Card className="border-destructive">
+				<Card className="border-northeastern-red">
 					<CardContent className="p-4">
-						<p className="text-destructive">{error}</p>
+						<p className="text-northeastern-red">{error}</p>
 					</CardContent>
 				</Card>
 			)}
 
 			{/* Plan Results */}
 			{plan.length > 0 && (
-				<Card>
-					<CardHeader>
+				<Card className="border-northeastern-gray-light">
+					<CardHeader className="bg-northeastern-green text-northeastern-white">
 						<CardTitle className="flex items-center gap-2">
 							<BookOpen className="h-5 w-5" />
 							Your Personalized Course Plan
 						</CardTitle>
-						<CardDescription>
+						<CardDescription className="text-northeastern-white/90">
 							Suggested {years}-year plan for {interest}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="grid gap-4">
 							{plan.map((semester, index) => (
-								<Card key={index} className="bg-muted/50">
+								<Card
+									key={index}
+									className="bg-northeastern-gray-light/20 border-northeastern-gray-light"
+								>
 									<CardHeader className="pb-3">
-										<CardTitle className="text-lg">
+										<CardTitle className="text-lg text-northeastern-black">
 											Year {semester.year} - {semester.term}
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
 										<ul className="space-y-1">
 											{semester.courses.map((course, courseIndex) => (
-												<li key={courseIndex} className="text-sm">
+												<li
+													key={courseIndex}
+													className="text-sm text-northeastern-gray-dark"
+												>
 													• {course}
 												</li>
 											))}

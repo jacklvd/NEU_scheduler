@@ -18,14 +18,14 @@ export class AuthAPI {
       }
     `;
 
-		console.log('Requesting OTP with:', { email, purpose });
+		// console.log('Requesting OTP with:', { email, purpose });
 
 		try {
 			const response = (await graphqlClient.request(mutation, {
 				email,
 				purpose,
 			})) as { requestOtp: AuthResponse };
-			console.log('OTP request response:', response);
+			// console.log('OTP request response:', response);
 			return response.requestOtp;
 		} catch (error) {
 			console.error('Error requesting OTP:', error);
@@ -89,17 +89,22 @@ export class AuthAPI {
 				graduationYear: register_data.graduationYear,
 			};
 
-			console.log('Preparing GraphQL input:', JSON.stringify(input));
+			// console.log('Preparing GraphQL input:', JSON.stringify(input));
 		}
 
 		try {
+			console.log('🔍 Sending GraphQL mutation:', mutation);
+			console.log('🔍 GraphQL input:', input);
+
 			const response = (await graphqlClient.request(mutation, { input })) as {
 				verifyOtp: AuthResponse;
 			} | null;
 
+			console.log('🔍 Raw GraphQL response:', response);
+
 			// Check if response is null or undefined
 			if (!response) {
-				console.error('Error: GraphQL returned null response');
+				console.error('❌ Error: GraphQL returned null response');
 				return {
 					success: false,
 					message: 'Verification failed. The server did not respond properly.',
@@ -109,7 +114,7 @@ export class AuthAPI {
 			// Check if verifyOtp property exists in response
 			if (!response.verifyOtp) {
 				console.error(
-					'Error: GraphQL response missing verifyOtp field:',
+					'❌ Error: GraphQL response missing verifyOtp field:',
 					response
 				);
 				return {
@@ -117,6 +122,10 @@ export class AuthAPI {
 					message: 'Verification failed. Invalid server response format.',
 				};
 			}
+
+			console.log('✅ Server response user data:', response.verifyOtp.user);
+			console.log('✅ Server response success:', response.verifyOtp.success);
+			console.log('✅ Server response message:', response.verifyOtp.message);
 
 			return response.verifyOtp;
 		} catch (error) {

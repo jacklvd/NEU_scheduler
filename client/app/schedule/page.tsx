@@ -67,8 +67,10 @@ export default function SchedulePage() {
 	return (
 		<div className="container mx-auto px-4 py-8">
 			<div className="mb-8">
-				<h1 className="text-3xl font-bold mb-2">My Schedule</h1>
-				<p className="text-muted-foreground">
+				<h1 className="text-3xl font-bold mb-2 text-northeastern-black">
+					My Schedule
+				</h1>
+				<p className="text-northeastern-gray">
 					Manage your course schedule and track your academic progress
 				</p>
 			</div>
@@ -77,8 +79,8 @@ export default function SchedulePage() {
 				{/* Schedule Overview */}
 				<div className="lg:col-span-2 space-y-6">
 					{/* Add Course Section */}
-					<Card>
-						<CardHeader>
+					<Card className="border-northeastern-gray-light">
+						<CardHeader className="bg-northeastern-teal text-northeastern-white">
 							<CardTitle className="flex items-center gap-2">
 								<Plus className="h-5 w-5" />
 								Add Course
@@ -92,23 +94,28 @@ export default function SchedulePage() {
 									placeholder="Enter CRN or course code (e.g., CS 2500)"
 									className="flex-1"
 								/>
-								<Button onClick={addCourse}>Add</Button>
+								<Button
+									onClick={addCourse}
+									className="bg-northeastern-teal hover:bg-northeastern-teal/90 text-northeastern-white"
+								>
+									Add
+								</Button>
 							</div>
 						</CardContent>
 					</Card>
 
 					{/* Current Schedule */}
-					<Card>
-						<CardHeader>
+					<Card className="border-northeastern-gray-light">
+						<CardHeader className="bg-northeastern-blue text-northeastern-white">
 							<CardTitle>Current Schedule</CardTitle>
-							<CardDescription>
+							<CardDescription className="text-northeastern-white/90">
 								{schedule.length} courses • {totalCredits} total credits
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
 							<div className="space-y-4">
 								{schedule.length === 0 ? (
-									<div className="text-center py-8 text-muted-foreground">
+									<div className="text-center py-8 text-northeastern-gray">
 										<Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
 										<p>No courses added yet</p>
 										<p className="text-sm">
@@ -132,21 +139,29 @@ export default function SchedulePage() {
 				{/* Sidebar */}
 				<div className="space-y-6">
 					{/* Schedule Summary */}
-					<Card>
-						<CardHeader>
+					<Card className="border-northeastern-gray-light">
+						<CardHeader className="bg-northeastern-gold text-northeastern-black">
 							<CardTitle>Schedule Summary</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<div className="flex justify-between">
-								<span>Total Courses:</span>
-								<span className="font-medium">{schedule.length}</span>
+								<span className="text-northeastern-gray-dark">
+									Total Courses:
+								</span>
+								<span className="font-medium text-northeastern-black">
+									{schedule.length}
+								</span>
 							</div>
 							<div className="flex justify-between">
-								<span>Total Credits:</span>
-								<span className="font-medium">{totalCredits}</span>
+								<span className="text-northeastern-gray-dark">
+									Total Credits:
+								</span>
+								<span className="font-medium text-northeastern-black">
+									{totalCredits}
+								</span>
 							</div>
 							<div className="flex justify-between">
-								<span>Status:</span>
+								<span className="text-northeastern-gray-dark">Status:</span>
 								<span
 									className={`font-medium ${
 										totalCredits >= 12 ? 'text-green-600' : 'text-orange-600'
@@ -205,24 +220,24 @@ function ScheduleCard({
 	onRemove: () => void;
 }) {
 	return (
-		<Card className="hover:shadow-md transition-shadow">
+		<Card className="hover:shadow-md transition-shadow border-northeastern-gray-light hover:border-northeastern-blue">
 			<CardContent className="p-4">
 				<div className="flex justify-between items-start mb-3">
 					<div>
-						<h3 className="font-semibold text-lg">
+						<h3 className="font-semibold text-lg text-northeastern-black">
 							{course.subject} {course.courseNumber}
 						</h3>
-						<p className="text-sm text-muted-foreground">{course.title}</p>
+						<p className="text-sm text-northeastern-gray">{course.title}</p>
 					</div>
 					<div className="flex items-center gap-2">
-						<span className="text-sm font-medium bg-primary/10 text-primary px-2 py-1 rounded">
+						<span className="text-sm font-medium bg-northeastern-red/10 text-northeastern-red px-2 py-1 rounded">
 							{course.credits} credits
 						</span>
 						<Button
 							variant="ghost"
 							size="sm"
 							onClick={onRemove}
-							className="text-destructive hover:text-destructive"
+							className="text-northeastern-red hover:text-northeastern-red hover:bg-northeastern-red/10"
 						>
 							<Trash2 className="h-4 w-4" />
 						</Button>
@@ -231,28 +246,36 @@ function ScheduleCard({
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
 					<div className="flex items-center gap-2">
-						<User className="h-4 w-4 text-muted-foreground" />
-						<span>{course.instructor || 'TBA'}</span>
+						<User className="h-4 w-4 text-northeastern-gray" />
+						<span className="text-northeastern-gray-dark">
+							{course.instructor || 'TBA'}
+						</span>
 					</div>
 					<div className="flex items-center gap-2">
-						<Clock className="h-4 w-4 text-muted-foreground" />
+						<Clock className="h-4 w-4 text-northeastern-gray" />
 						<div>
-							<p>{course.meetingDays || 'TBA'}</p>
-							<p className="text-muted-foreground">
+							<p className="text-northeastern-gray-dark">
+								{course.meetingDays || 'TBA'}
+							</p>
+							<p className="text-northeastern-gray">
 								{course.meetingTimes || 'TBA'}
 							</p>
 						</div>
 					</div>
 					<div className="flex items-center gap-2">
-						<MapPin className="h-4 w-4 text-muted-foreground" />
-						<span>{course.location || 'TBA'}</span>
+						<MapPin className="h-4 w-4 text-northeastern-gray" />
+						<span className="text-northeastern-gray-dark">
+							{course.location || 'TBA'}
+						</span>
 					</div>
 				</div>
 
-				<div className="mt-3 pt-3 border-t">
+				<div className="mt-3 pt-3 border-t border-northeastern-gray-light">
 					<div className="flex justify-between text-sm">
-						<span>CRN: {course.crn}</span>
-						<span className="text-muted-foreground">
+						<span className="text-northeastern-gray-dark">
+							CRN: {course.crn}
+						</span>
+						<span className="text-northeastern-gray">
 							{course.enrollment}/{course.enrollmentCap} enrolled
 						</span>
 					</div>
