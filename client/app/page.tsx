@@ -66,22 +66,31 @@ export default function HomePage() {
 		<div className="container mx-auto px-4 py-12">
 			{/* Hero Section */}
 			<div className="text-center mb-16">
-				<h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+				<h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-northeastern-red to-northeastern-orange bg-clip-text text-transparent">
 					Plan Your Academic Journey
 				</h1>
-				<p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+				<p className="text-xl text-northeastern-gray mb-8 max-w-3xl mx-auto">
 					AI-powered course planning for Northeastern University students.
 					Discover courses, get personalized recommendations, and build your
 					perfect schedule.
 				</p>
 				<div className="flex flex-col sm:flex-row gap-4 justify-center">
-					<Button asChild size="lg">
+					<Button
+						asChild
+						size="lg"
+						className="bg-northeastern-red hover:bg-northeastern-red/90 text-northeastern-white"
+					>
 						<Link href="/courses">
 							<Search className="mr-2 h-4 w-4" />
 							Search Courses
 						</Link>
 					</Button>
-					<Button asChild variant="outline" size="lg">
+					<Button
+						asChild
+						variant="outline"
+						size="lg"
+						className="border-northeastern-red text-northeastern-red hover:bg-northeastern-red hover:text-northeastern-white"
+					>
 						<Link href="/planner">
 							<Sparkles className="mr-2 h-4 w-4" />
 							Try AI Planner
@@ -95,20 +104,30 @@ export default function HomePage() {
 				{features.map((feature, index) => {
 					const Icon = feature.icon;
 					return (
-						<Card key={index} className="hover:shadow-lg transition-shadow">
+						<Card
+							key={index}
+							className="hover:shadow-lg transition-shadow border-northeastern-gray-light hover:border-northeastern-red"
+						>
 							<CardHeader>
 								<div className="flex items-center space-x-3">
-									<div className="p-2 bg-primary/10 rounded-md">
-										<Icon className="h-6 w-6 text-primary" />
+									<div className="p-2 bg-northeastern-red/10 rounded-md">
+										<Icon className="h-6 w-6 text-northeastern-red" />
 									</div>
-									<CardTitle className="text-xl">{feature.title}</CardTitle>
+									<CardTitle className="text-xl text-northeastern-black">
+										{feature.title}
+									</CardTitle>
 								</div>
 							</CardHeader>
 							<CardContent>
-								<CardDescription className="text-base mb-4">
+								<CardDescription className="text-base mb-4 text-northeastern-gray">
 									{feature.description}
 								</CardDescription>
-								<Button asChild variant="outline" size="sm">
+								<Button
+									asChild
+									variant="outline"
+									size="sm"
+									className="border-northeastern-blue text-northeastern-blue hover:bg-northeastern-blue hover:text-northeastern-white"
+								>
 									<Link href={feature.href}>Learn More</Link>
 								</Button>
 							</CardContent>
@@ -118,20 +137,28 @@ export default function HomePage() {
 			</div>
 
 			{/* Quick Stats */}
-			<div className="bg-muted/50 rounded-lg p-8 text-center">
-				<h2 className="text-2xl font-bold mb-6">Trusted by NEU Students</h2>
+			<div className="bg-northeastern-gray-light/30 rounded-lg p-8 text-center border border-northeastern-gray-light">
+				<h2 className="text-2xl font-bold mb-6 text-northeastern-black">
+					Trusted by NEU Students
+				</h2>
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
 					<div>
-						<div className="text-3xl font-bold text-primary mb-2">2,000+</div>
-						<div className="text-muted-foreground">Courses Available</div>
+						<div className="text-3xl font-bold text-northeastern-red mb-2">
+							2,000+
+						</div>
+						<div className="text-northeastern-gray">Courses Available</div>
 					</div>
 					<div>
-						<div className="text-3xl font-bold text-primary mb-2">95%</div>
-						<div className="text-muted-foreground">Planning Accuracy</div>
+						<div className="text-3xl font-bold text-northeastern-red mb-2">
+							95%
+						</div>
+						<div className="text-northeastern-gray">Planning Accuracy</div>
 					</div>
 					<div>
-						<div className="text-3xl font-bold text-primary mb-2">24/7</div>
-						<div className="text-muted-foreground">AI Assistance</div>
+						<div className="text-3xl font-bold text-northeastern-red mb-2">
+							24/7
+						</div>
+						<div className="text-northeastern-gray">AI Assistance</div>
 					</div>
 				</div>
 			</div>

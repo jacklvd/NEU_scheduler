@@ -41,6 +41,19 @@
 	--radius-md: calc(var(--radius) - 2px);
 	--radius-lg: var(--radius);
 	--radius-xl: calc(var(--radius) + 4px);
+
+	/* Northeastern University Color Palette */
+	--color-northeastern-red: #c8102e;
+	--color-northeastern-black: #000000;
+	--color-northeastern-white: #ffffff;
+	--color-northeastern-gray-dark: #1d1d1d;
+	--color-northeastern-gray: #707372;
+	--color-northeastern-gray-light: #d6d6ce;
+	--color-northeastern-gold: #fdb913;
+	--color-northeastern-orange: #f47920;
+	--color-northeastern-blue: #00a9e0;
+	--color-northeastern-teal: #007398;
+	--color-northeastern-green: #007a33;
 }
 
 :root {

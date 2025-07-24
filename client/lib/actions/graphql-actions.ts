@@ -7,12 +7,14 @@ export async function executeQuery<T>(
 	query: string,
 	variables?: Record<string, unknown>
 ): Promise<T> {
-	return await graphqlClient.request<T>(query, variables);
+	const result = await graphqlClient.request(query, variables);
+	return result as T;
 }
 
 export async function executeMutation<T = unknown>(
 	mutation: string,
 	variables?: Record<string, unknown>
 ): Promise<T> {
-	return await graphqlClient.request<T>(mutation, variables);
+	const result = await graphqlClient.request(mutation, variables);
+	return result as T;
 }

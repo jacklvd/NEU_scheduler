@@ -6,7 +6,7 @@ const GRAPHQL_ENDPOINT =
 	process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT ||
 	'http://localhost:8000/api/graphql';
 
-console.log('GraphQL endpoint:', GRAPHQL_ENDPOINT);
+// console.log('GraphQL endpoint:', GRAPHQL_ENDPOINT);
 
 // Create a wrapper around the GraphQL client to add better debugging
 class DebugGraphQLClient {
@@ -24,10 +24,10 @@ class DebugGraphQLClient {
 
 	async request(query: string, variables: any = {}) {
 		try {
-			console.log(`GraphQL Request to ${GRAPHQL_ENDPOINT}:`, {
-				query: query.slice(0, 200) + '...', // Truncate long queries in logs
-				variables,
-			});
+			// console.log(`GraphQL Request to ${GRAPHQL_ENDPOINT}:`, {
+			// 	query: query.slice(0, 200) + '...', // Truncate long queries in logs
+			// 	variables,
+			// });
 
 			const result = await this.client.request(query, variables);
 			console.log('GraphQL Response:', result);

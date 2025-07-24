@@ -15,7 +15,6 @@ r2_bucket_name = os.getenv("R2_BUCKET_NAME")
 r2_endpoint_url = os.getenv("R2_ENDPOINT_URL")
 r2_region = os.getenv("R2_REGION")
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 JWT_EXPIRE_MINUTES = os.getenv("JWT_EXPIRE_MINUTES")
 MAIL_USERNAME = os.getenv("MAIL_USERNAME")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
@@ -58,7 +57,7 @@ class Settings(BaseSettings):
     nu_banner_base_url: str = API_BASE
     # JWT configuration
     jwt_secret_key: str = JWT_SECRET_KEY
-    jwt_algorithm: str = JWT_ALGORITHM
+    jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = JWT_EXPIRE_MINUTES
     # Mailtrap configuration
     mail_username: str = MAIL_USERNAME

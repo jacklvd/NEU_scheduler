@@ -2,15 +2,13 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Mail, KeyRound, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-	requestOTP as requestOTPAction,
-	verifyOTP as verifyOTPAction,
-} from '@/lib/actions/auth-actions';
+import { requestOTP as requestOTPAction } from '@/lib/actions/auth-actions';
 
 interface RegisterData {
 	firstName: string;
@@ -26,6 +24,8 @@ type AuthMode = 'login' | 'register';
 interface OTPAuthFormProps {
 	initialMode?: AuthMode;
 }
+
+const DEFAULT_YEARS_TO_GRADUATION = 4;
 
 export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 	const router = useRouter();
@@ -92,30 +92,47 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 				mode === 'register' ? JSON.stringify(register_data) : 'N/A'
 			);
 
-			// Use the direct GraphQL API call instead of NextAuth
-			const result = await verifyOTPAction(
+			// Use NextAuth signIn instead of direct GraphQL
+			const credentials: Record<string, string> = {
 				email,
-				otp,
-				mode,
-				mode === 'register' ? register_data : undefined
+				code: otp,
+			};
+
+			// Add registration data if registering
+			if (mode === 'register') {
+				Object.assign(credentials, {
+					firstName: register_data.firstName,
+					lastName: register_data.lastName,
+					studentId: register_data.studentId,
+					major: register_data.major,
+					graduationYear: register_data.graduationYear?.toString(),
+				});
+			}
+
+			console.log(
+				'🔐 Calling NextAuth signIn with provider:',
+				mode === 'register' ? 'register' : 'signin'
 			);
 
-			if (result.success) {
+			const result = await signIn(mode === 'register' ? 'register' : 'signin', {
+				...credentials,
+				redirect: false, // Don't redirect automatically
+			});
+
+			console.log('🔐 NextAuth signIn result:', result);
+
+			if (result?.error) {
+				setError(result.error);
+			} else if (result?.ok) {
 				toast.success(
 					mode === 'register'
 						? 'Account created successfully!'
 						: 'Signed in successfully!'
 				);
 
-				// If we have a token, we could store it or handle the user session
-				if (result.token && result.user) {
-					// For now, just redirect to home page
-					// In a real app, you'd want to set up the session properly
-					router.push('/');
-					router.refresh();
-				}
-			} else {
-				setError(result.message || 'Verification failed');
+				// Redirect to dashboard on successful authentication
+				router.push('/dashboard');
+				router.refresh();
 			}
 		} catch (error) {
 			console.error('Exception during OTP verification:', error);
@@ -183,7 +200,7 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 							<button
 								type="button"
 								onClick={switchMode}
-								className="text-sm text-blue-600 hover:text-blue-800"
+								className="text-sm text-northeastern-blue hover:text-northeastern-teal"
 							>
 								{mode === 'login'
 									? "Don't have an account? Sign up"
@@ -296,7 +313,8 @@ export function OTPAuthForm({ initialMode = 'login' }: OTPAuthFormProps) {
 												...register_data,
 												graduationYear:
 													parseInt(e.target.value) ||
-													new Date().getFullYear() + DEFAULT_YEARS_TO_GRADUATION,
+													new Date().getFullYear() +
+														DEFAULT_YEARS_TO_GRADUATION,
 											})
 										}
 									/>
