@@ -56,24 +56,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				code: { label: 'Verification Code', type: 'text' },
 			},
 			async authorize(credentials) {
-				console.log('🔐 NextAuth authorize called for signin');
 				if (!credentials?.email || !credentials?.code) {
 					throw new Error('Missing email or verification code');
 				}
 
 				try {
-					console.log('🔐 Calling AuthAPI.verifyOTP for login');
 					const response = await AuthAPI.verifyOTP(
 						credentials.email as string,
 						credentials.code as string,
 						'login'
 					);
 
-					console.log('🔐 AuthAPI response:', response);
-
 					if (response.success && response.user) {
 						const user = response.user;
-						console.log('🔐 Raw user from server:', user);
 
 						// Map snake_case server fields to camelCase NextAuth fields
 						const mappedUser = {
@@ -88,7 +83,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 							isVerified: user.is_verified ?? user.isVerified ?? true,
 						};
 
-						console.log('🔐 Mapped user for NextAuth:', mappedUser);
 						return mappedUser;
 					}
 
@@ -179,12 +173,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 	callbacks: {
 		async jwt({ token, user }) {
 			if (user) {
-				console.log('JWT callback - user signed in:', {
-					userId: user.id,
-					email: user.email,
-					firstName: user.firstName,
-					isVerified: user.isVerified,
-				});
 				token.id = user.id;
 				token.email = user.email;
 				token.firstName = user.firstName || '';
@@ -194,24 +182,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				token.graduationYear = user.graduationYear;
 				token.isVerified = user.isVerified ?? true;
 			}
-			console.log('JWT callback - final token:', {
-				id: token.id,
-				email: token.email,
-				firstName: token.firstName,
-			});
 			return token;
 		},
 		async session({ session, token }) {
-			console.log('Session callback - input token:', {
-				tokenId: token.id,
-				tokenEmail: token.email,
-				tokenFirstName: token.firstName,
-			});
-
 			if (token && session.user) {
-				console.log('Session callback - creating session for user:', {
-					sessionEmail: session.user.email,
-				});
 				session.user.id = token.id as string;
 				session.user.firstName = token.firstName as string;
 				session.user.lastName = token.lastName as string;
@@ -223,11 +197,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				session.user.isVerified = token.isVerified as boolean;
 			}
 
-			console.log('Session callback - final session:', {
-				userId: session.user?.id,
-				userEmail: session.user?.email,
-				userFirstName: session.user?.firstName,
-			});
 			return session;
 		},
 	},
