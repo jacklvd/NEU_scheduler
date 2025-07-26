@@ -16,29 +16,45 @@ The frontend provides an intuitive interface for students to:
 
 - **Framework:** Next.js 15+ (App Router)
 - **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **UI Components:** Custom components with shadcn/ui
-- **State Management:** (To be implemented)
+- **Authentication:** NextAuth.js v5
+- **Styling:** Tailwind CSS v4
+- **UI Components:** shadcn/ui + custom components
+- **State Management:** React hooks + Context API
 - **API Communication:** GraphQL + REST API
+- **HTTP Client:** Built-in fetch + custom API clients
+- **Form Handling:** Server Actions
 - **Font:** Geist font family
+- **Development:** Hot reloading, TypeScript, ESLint, Prettier
 
 ## Project Structure
 
 ```bash
 client/
 ├── app/                    # Next.js App Router
+│   ├── (auth)/            # Authentication route group
+│   │   ├── error/         # Auth error pages
+│   │   ├── sign-in/       # Sign in page
+│   │   ├── sign-up/       # Sign up page
+│   │   └── layout.tsx     # Auth layout component
+│   ├── api/               # API routes (server-side)
 │   ├── courses/           # Course search and catalog pages
-│   ├── planner/          # Academic planning pages
-│   ├── schedule/         # Schedule management pages
-│   ├── favicon.ico       # App favicon
-│   ├── globals.css       # Global styles
-│   ├── layout.tsx        # Root layout component
-│   └── page.tsx          # Home page
+│   ├── dashboard/         # Dashboard page
+│   ├── planner/           # Academic planning pages
+│   ├── schedule/          # Schedule management pages
+│   ├── favicon.ico        # App favicon
+│   ├── globals.css        # Global styles with Tailwind CSS
+│   ├── layout.tsx         # Root layout component
+│   └── page.tsx           # Home page
 ├── components/            # React components
-│   ├── auth/             # Authentication components
-│   ├── magicui/          # Magic UI components with animations
+│   ├── auth/              # Authentication components
+│   │   ├── auth-form.tsx  # Login/signup form
+│   │   ├── auth-guard.tsx # Route protection
+│   │   └── user-dropdown.tsx # User menu dropdown
+│   ├── magicui/           # Magic UI components with animations
 │   │   └── ripple-button.tsx
-│   ├── ui/               # Reusable UI components (shadcn/ui)
+│   ├── providers/         # Context providers
+│   │   └── auth-provider.tsx # Authentication context
+│   ├── ui/                # Reusable UI components (shadcn/ui)
 │   │   ├── avatar.tsx
 │   │   ├── breadcrumb.tsx
 │   │   ├── button.tsx
@@ -47,34 +63,49 @@ client/
 │   │   ├── pagination.tsx
 │   │   ├── sonner.tsx
 │   │   └── tooltip.tsx
-│   ├── ai-planner.tsx    # AI-powered planning component
-│   ├── course-search.tsx # Course search functionality
-│   └── navbar.tsx        # Navigation component
-├── lib/                  # Utility libraries
-│   ├── api/             # API client configurations
-│   ├── hooks/           # Custom React hooks
-│   └── utils.ts         # Utility functions
-├── public/              # Static assets
+│   ├── ai-planner.tsx     # AI-powered planning component
+│   ├── calendar-01.tsx    # Calendar component
+│   ├── course-search.tsx  # Course search functionality
+│   ├── custom-pagination.tsx # Custom pagination component
+│   └── navbar.tsx         # Navigation component
+├── hooks/                 # Custom React hooks
+│   ├── use-mobile.ts      # Mobile detection hook
+│   ├── use-pagination.ts  # Pagination logic hook
+│   └── useCourses.ts      # Course data hooks
+├── lib/                   # Utility libraries
+│   ├── actions/           # Server actions
+│   │   ├── auth-actions.ts # Authentication actions
+│   │   └── graphql-actions.ts # GraphQL actions
+│   ├── api/               # API client configurations
+│   │   ├── auth.ts        # Authentication API
+│   │   ├── course.ts      # Course API
+│   │   └── graphql.ts     # GraphQL client
+│   └── utils.ts           # Utility functions
+├── public/                # Static assets
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── types/               # TypeScript type definitions
-│   └── api.ts          # API type definitions
-├── .husky/             # Git hooks configuration
-├── .env                # Environment variables
-├── .prettierignore     # Prettier ignore rules
-├── .prettierrc         # Prettier configuration
-├── components.json     # shadcn/ui configuration
-├── eslint.config.mjs   # ESLint configuration
-├── next-env.d.ts       # Next.js TypeScript declarations
-├── next.config.ts      # Next.js configuration
-├── package.json        # Dependencies and scripts
-├── postcss.config.mjs  # PostCSS configuration
-├── README.md           # This file
-├── tsconfig.json       # TypeScript configuration
-└── yarn.lock           # Yarn lock file
+├── types/                 # TypeScript type definitions
+│   └── api.ts            # API type definitions
+├── certificates/          # SSL certificates (development)
+├── constant/              # Application constants
+├── .husky/                # Git hooks configuration
+├── .env.local             # Environment variables
+├── .prettierignore        # Prettier ignore rules
+├── .prettierrc            # Prettier configuration
+├── auth.ts                # NextAuth configuration
+├── components.json        # shadcn/ui configuration
+├── eslint.config.mjs      # ESLint configuration
+├── middleware.ts          # Next.js middleware
+├── next-env.d.ts          # Next.js TypeScript declarations
+├── next.config.ts         # Next.js configuration
+├── package.json           # Dependencies and scripts
+├── postcss.config.mjs     # PostCSS configuration
+├── README.md              # This file
+├── tsconfig.json          # TypeScript configuration
+└── yarn.lock              # Yarn lock file
 ```
 
 ## Installation & Setup
@@ -109,6 +140,10 @@ client/
    # API Configuration
    NEXT_PUBLIC_API_URL=http://localhost:8000/api
    NEXT_PUBLIC_GRAPHQL_URL=http://localhost:8000/api/graphql
+
+   # NextAuth Configuration
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=your-super-secret-nextauth-key-change-this-in-production
 
    # App Configuration
    NEXT_PUBLIC_APP_NAME=NEUscheduler
@@ -147,8 +182,18 @@ yarn add -D <package>     # Add dev dependency
 ### Code Structure
 
 - **`app/`** - Next.js App Router pages and layouts
-- **`components/ui/`** - Reusable UI components (shadcn/ui based)
-- **`components/magicui/`** - Enhanced UI components with animations
+  - **`(auth)/`** - Authentication route group with dedicated layout
+  - **`api/`** - Server-side API routes
+  - **`dashboard/`**, **`courses/`**, **`planner/`**, **`schedule/`** - Main app pages
+- **`components/`** - React components organized by feature
+  - **`auth/`** - Authentication-related components
+  - **`ui/`** - Reusable UI components (shadcn/ui based)
+  - **`providers/`** - React context providers
+- **`hooks/`** - Custom React hooks for state management
+- **`lib/`** - Utility libraries and API clients
+  - **`actions/`** - Server actions for form handling
+  - **`api/`** - API client configurations
+- **`types/`** - TypeScript type definitions
 - **`public/`** - Static assets (images, icons, etc.)
 
 ### Styling
@@ -164,8 +209,9 @@ npx shadcn-ui@latest add <component-name>
 
 The frontend communicates with the backend through:
 
-- **REST API:** For simple CRUD operations
-- **GraphQL:** For complex queries and real-time data
+- **REST API:** For simple CRUD operations and health checks
+- **GraphQL:** For complex queries and course data
+- **Server Actions:** For form submissions and authentication
 
 Example API usage:
 
@@ -174,13 +220,17 @@ Example API usage:
 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/health`);
 const data = await response.json();
 
-// GraphQL query (to be implemented)
-// const { data } = useQuery(GET_COURSES, { variables: { term: 'spring2024' } });
+// GraphQL query using custom hooks
+const { courses, loading, error } = useCourseSearch();
+
+// Server action
+import { signIn } from '@/lib/actions/auth-actions';
+await signIn(formData);
 ```
 
 ### Component Development
 
-Components follow the shadcn/ui pattern with Tailwind CSS:
+Components follow the shadcn/ui pattern with Tailwind CSS v4 and Northeastern theming:
 
 ```typescript
 import { Button } from "@/components/ui/button"
@@ -188,28 +238,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function CourseCard({ course }) {
   return (
-    <Card>
-      <CardHeader>
+    <Card className="border-gray-200">
+      <CardHeader className="bg-northeastern-red text-white">
         <CardTitle>{course.name}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p>{course.description}</p>
-        <Button variant="outline">Add to Schedule</Button>
+      <CardContent className="p-4">
+        <p className="text-gray-600">{course.description}</p>
+        <Button variant="outline" className="mt-4">
+          Add to Schedule
+        </Button>
       </CardContent>
     </Card>
   )
 }
 ```
 
+### Authentication Flow
+
+The app uses NextAuth.js v5 with custom providers:
+
+```typescript
+// Protected route example
+import { AuthGuard } from "@/components/auth/auth-guard"
+
+export default function ProtectedPage() {
+  return (
+    <AuthGuard>
+      <div>Protected content here</div>
+    </AuthGuard>
+  )
+}
+```
+
+## Features (Implemented)
+
+- **Authentication System:** Complete sign-in/sign-up with NextAuth.js
+- **Course Search:** Advanced filtering and search with pagination (15 results per page)
+- **Responsive Design:** Mobile-first, responsive interface
+- **Northeastern Theming:** Official NEU colors and branding
+- **Route Protection:** Auth guards for protected pages
+- **Custom Pagination:** Built-in pagination component
+- **Calendar Integration:** Calendar component for schedule visualization
+- **AI Planner:** AI-powered course planning assistance
+- **Real-time Validation:** Form validation and error handling
+- **Navigation:** Responsive navbar with user dropdown
+
 ## Features (Planned)
 
-- **Course Search:** Advanced filtering and search capabilities
 - **Schedule Builder:** Drag-and-drop schedule creation
-- **AI Recommendations:** Intelligent course suggestions
 - **Conflict Detection:** Automatic schedule conflict resolution
-- **Responsive Design:** Mobile-first, responsive interface
 - **Dark Mode:** Theme switching support
 - **Real-time Updates:** Live data synchronization
+- **Export/Import:** Schedule export to various formats
 
 ## Configuration
 
@@ -292,7 +372,16 @@ For Vercel deployment:
 The frontend integrates with the backend API endpoints:
 
 - **Health Check:** `GET /api/health`
-- **Course Search:** `GET /api/courses`
+- **Authentication:** Server actions with JWT tokens
+- **Course Search:** GraphQL queries for course data
+- **Terms & Subjects:** GraphQL queries for academic terms
 - **GraphQL Endpoint:** `POST /api/graphql`
 
-Ensure the backend server is running before starting frontend development.
+Key API features:
+
+- **Course Search:** Search courses by term, subject, and keywords
+- **Pagination:** 15 results per page with custom pagination
+- **Authentication:** Secure JWT-based authentication
+- **Real-time Data:** GraphQL subscriptions for live updates
+
+Ensure the backend server is running on `http://localhost:8000` before starting frontend development.

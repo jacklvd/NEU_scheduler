@@ -1,5 +1,5 @@
+import asyncio
 import httpx
-import os
 from typing import List, Dict, Any, Optional
 import redis
 import json
@@ -26,12 +26,26 @@ class SearchNEUClient:
             try:
                 url = f"{self.base_url}{endpoint}"
 
-                # Set default headers
+                # Set default headers to mimic browser
                 default_headers = {
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Accept": "application/json, text/plain, */*",
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept-Encoding": "gzip, deflate, br",
+                    "Connection": "keep-alive",
+                    "Sec-Fetch-Dest": "empty",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "same-origin",
                 }
                 if headers:
                     default_headers.update(headers)
+
+                # Debug logging
+                print(f"Making {method} request to: {url}")
+                if params:
+                    print(f"Params: {params}")
+                if data:
+                    print(f"Data: {data}")
 
                 if method.upper() == "GET":
                     response = await client.get(
@@ -54,6 +68,7 @@ class SearchNEUClient:
                             url, headers=default_headers, cookies=cookies
                         )
 
+                print(f"Response status: {response.status_code}")
                 response.raise_for_status()
 
                 # Store session cookies for future requests
@@ -62,41 +77,55 @@ class SearchNEUClient:
 
                 # Try to parse as JSON, otherwise return text
                 try:
-                    return response.json()
+                    result = response.json()
+                    print(f"JSON Response received: {type(result)}")
+                    return result
                 except:
-                    return response.text
+                    text_result = response.text
+                    print(f"Text Response received: {len(text_result)} characters")
+                    return text_result
 
             except httpx.HTTPStatusError as e:
+                print(f"HTTP Status Error: {e.response.status_code}")
+                print(f"Response text: {e.response.text[:500]}...")
                 raise Exception(
-                    f"NU Banner API error: {e.response.status_code} - {e.response.text}"
+                    f"NU Banner API error: {e.response.status_code} - {e.response.text[:200]}"
                 )
             except Exception as e:
+                print(f"Request failed: {str(e)}")
                 raise Exception(f"NU Banner API request failed: {str(e)}")
 
     async def _get_cached_or_fetch(
         self, cache_key: str, fetch_func, cache_ttl: int = 3600
     ):
         """Get data from cache or fetch from API"""
-        cached_data = self.redis_client.get(cache_key)
-        if cached_data:
+        if self.redis_client:
             try:
-                return json.loads(cached_data)
-            except:
-                # If cached data is not JSON, return as string
-                return cached_data.decode("utf-8")
+                cached_data = self.redis_client.get(cache_key)
+                if cached_data:
+                    try:
+                        return json.loads(cached_data)
+                    except:
+                        return cached_data.decode("utf-8")
+            except Exception as e:
+                print(f"Cache read error: {e}")
 
         data = await fetch_func()
 
-        # Cache the data (handle both JSON and string responses)
-        if isinstance(data, (dict, list)):
-            self.redis_client.setex(cache_key, cache_ttl, json.dumps(data))
-        else:
-            self.redis_client.setex(cache_key, cache_ttl, str(data))
+        # Cache the data if Redis is available
+        if self.redis_client:
+            try:
+                if isinstance(data, (dict, list)):
+                    self.redis_client.setex(cache_key, cache_ttl, json.dumps(data))
+                else:
+                    self.redis_client.setex(cache_key, cache_ttl, str(data))
+            except Exception as e:
+                print(f"Cache write error: {e}")
 
         return data
 
     async def get_terms(
-        self, offset: int = 1, max_results: int = 20, search_term: str = ""
+        self, offset: int = 1, max_results: int = 50, search_term: str = ""
     ) -> List[Dict[str, Any]]:
         """Get available terms/semesters"""
         cache_key = f"terms:{offset}:{max_results}:{search_term}"
@@ -113,7 +142,7 @@ class SearchNEUClient:
         return await self._get_cached_or_fetch(cache_key, fetch_terms, cache_ttl=7200)
 
     async def get_subjects(
-        self, term: str, offset: int = 1, max_results: int = 100, search_term: str = ""
+        self, term: str, offset: int = 1, max_results: int = 500, search_term: str = ""
     ) -> List[Dict[str, Any]]:
         """Get subjects for a specific term"""
         cache_key = f"subjects:{term}:{offset}:{max_results}:{search_term}"
@@ -129,17 +158,23 @@ class SearchNEUClient:
 
         return await self._get_cached_or_fetch(cache_key, fetch_subjects)
 
-    async def declare_term(self, term: str) -> Dict[str, Any]:
+    async def declare_term(self, term: str) -> bool:
         """Declare which term we're interested in (required before searching)"""
-        data = {
-            "term": term,
-            "studyPath": "",
-            "studyPathText": "",
-            "startDatepicker": "",
-            "endDatepicker": "",
-        }
+        try:
+            data = {
+                "term": term,
+                "studyPath": "",
+                "studyPathText": "",
+                "startDatepicker": "",
+                "endDatepicker": "",
+            }
 
-        return await self._make_request("POST", "/term/search", data=data)
+            result = await self._make_request("POST", "/term/search", data=data)
+            print(f"Term declaration result: {result}")
+            return True
+        except Exception as e:
+            print(f"Failed to declare term: {e}")
+            return False
 
     async def search_courses(
         self,
@@ -157,114 +192,64 @@ class SearchNEUClient:
         )
 
         async def fetch_courses():
-            # First declare the term
-            await self.declare_term(term)
+            try:
+                # First declare the term
+                print(f"Declaring term: {term}")
+                declare_success = await self.declare_term(term)
+                if not declare_success:
+                    return {
+                        "success": False,
+                        "data": [],
+                        "message": "Failed to declare term",
+                    }
 
-            # Then search for courses
-            params = {
-                "txt_term": term,
-                "pageOffset": page_offset,
-                "pageMaxSize": page_max_size,
-                "sortColumn": sort_column,
-                "sortDirection": sort_direction,
-            }
+                # Small delay to ensure session is established
+                await asyncio.sleep(0.5)
 
-            if subject:
-                params["txt_subject"] = subject
-            if course_number:
-                params["txt_courseNumber"] = course_number
+                # Then search for courses
+                params = {
+                    "txt_term": term,
+                    "pageOffset": page_offset,
+                    "pageMaxSize": page_max_size,
+                    "sortColumn": sort_column,
+                    "sortDirection": sort_direction,
+                }
 
-            return await self._make_request(
-                "GET",
-                "/searchResults/searchResults",
-                params=params,
-                cookies=self.session_cookies,
-            )
+                if subject:
+                    params["txt_subject"] = subject.upper()
+                if course_number:
+                    params["txt_courseNumber"] = course_number
+
+                print(f"Searching with params: {params}")
+                result = await self._make_request(
+                    "GET",
+                    "/searchResults/searchResults",
+                    params=params,
+                    cookies=self.session_cookies,
+                )
+
+                if isinstance(result, dict):
+                    return result
+                else:
+                    print(f"Unexpected result type: {type(result)}")
+                    return {
+                        "success": False,
+                        "data": [],
+                        "message": "Unexpected response format",
+                    }
+
+            except Exception as e:
+                print(f"Course search error: {e}")
+                return {"success": False, "data": [], "message": str(e)}
 
         return await self._get_cached_or_fetch(cache_key, fetch_courses)
 
-    async def get_faculty_meeting_times(self, term: str, crn: str) -> Dict[str, Any]:
-        """Get faculty and meeting times for a specific course section"""
-        cache_key = f"meeting_times:{term}:{crn}"
-
-        async def fetch_meeting_times():
-            params = {"term": term, "courseReferenceNumber": crn}
-
-            return await self._make_request(
-                "GET",
-                "/searchResults/getFacultyMeetingTimes",
-                params=params,
-                cookies=self.session_cookies,
-            )
-
-        return await self._get_cached_or_fetch(cache_key, fetch_meeting_times)
-
-    async def get_class_details(self, term: str, crn: str) -> str:
-        """Get detailed class information (HTML response)"""
-        cache_key = f"class_details:{term}:{crn}"
-
-        async def fetch_details():
-            data = {"term": term, "courseReferenceNumber": crn}
-
-            return await self._make_request(
-                "POST",
-                "/searchResults/getClassDetails",
-                data=data,
-                cookies=self.session_cookies,
-            )
-
-        return await self._get_cached_or_fetch(cache_key, fetch_details)
-
-    async def get_course_description(self, term: str, crn: str) -> str:
-        """Get course description (HTML response)"""
-        cache_key = f"course_description:{term}:{crn}"
-
-        async def fetch_description():
-            data = {"term": term, "courseReferenceNumber": crn}
-
-            return await self._make_request(
-                "POST",
-                "/searchResults/getCourseDescription",
-                data=data,
-                cookies=self.session_cookies,
-            )
-
-        return await self._get_cached_or_fetch(cache_key, fetch_description)
-
-    async def get_prerequisites(self, term: str, crn: str) -> str:
-        """Get prerequisites information (HTML response)"""
-        cache_key = f"prerequisites:{term}:{crn}"
-
-        async def fetch_prerequisites():
-            data = {"term": term, "courseReferenceNumber": crn}
-
-            return await self._make_request(
-                "POST",
-                "/searchResults/getSectionPrerequisites",
-                data=data,
-                cookies=self.session_cookies,
-            )
-
-        return await self._get_cached_or_fetch(cache_key, fetch_prerequisites)
-
-    async def get_corequisites(self, term: str, crn: str) -> str:
-        """Get corequisites information (HTML response)"""
-        cache_key = f"corequisites:{term}:{crn}"
-
-        async def fetch_corequisites():
-            data = {"term": term, "courseReferenceNumber": crn}
-
-            return await self._make_request(
-                "POST",
-                "/searchResults/getCorequisites",
-                data=data,
-                cookies=self.session_cookies,
-            )
-
-        return await self._get_cached_or_fetch(cache_key, fetch_corequisites)
-
     async def reset_form(self) -> str:
         """Reset the search form to search for different courses"""
-        return await self._make_request(
-            "POST", "/classSearch/resetDataForm", cookies=self.session_cookies
-        )
+        try:
+            return await self._make_request(
+                "POST", "/classSearch/resetDataForm", cookies=self.session_cookies
+            )
+        except Exception as e:
+            print(f"Reset form error: {e}")
+            return "failed"

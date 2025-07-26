@@ -11,7 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from './ui/card';
-import { useAIPlan } from '../lib/hooks/useCourses';
+import { useAIPlan } from '../hooks/useCourses';
 
 export function AIPlannerComponent() {
 	const [interest, setInterest] = useState('');

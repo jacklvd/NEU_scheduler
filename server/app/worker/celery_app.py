@@ -1,5 +1,4 @@
 from celery import Celery
-import os
 from app.config import settings
 
 # Create Celery instance

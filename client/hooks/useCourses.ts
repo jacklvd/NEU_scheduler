@@ -9,25 +9,33 @@ export function useTerms() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
-	async function fetchTerms() {
+	const fetchTerms = async () => {
 		try {
 			setLoading(true);
-			const data = await CourseAPI.getTerms();
-			setTerms(data);
 			setError(null);
+
+			console.log('Fetching terms...');
+			const data = await CourseAPI.getTerms(50); // Get more terms
+			console.log('Terms received:', data);
+
+			setTerms(data);
 		} catch (err) {
+			console.error('Error fetching terms:', err);
 			setError('Failed to fetch terms');
-			console.error(err);
 		} finally {
 			setLoading(false);
 		}
-	}
+	};
 
 	useEffect(() => {
 		fetchTerms();
 	}, []);
 
-	return { terms, loading, error, refetch: fetchTerms };
+	const refetch = async () => {
+		await fetchTerms();
+	};
+
+	return { terms, loading, error, refetch };
 }
 
 export function useSubjects(term: string) {
@@ -36,17 +44,24 @@ export function useSubjects(term: string) {
 	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (!term) return;
+		if (!term) {
+			setSubjects([]);
+			return;
+		}
 
 		async function fetchSubjects() {
 			try {
 				setLoading(true);
-				const data = await CourseAPI.getSubjects(term);
-				setSubjects(data);
 				setError(null);
+
+				console.log('Fetching subjects for term:', term);
+				const data = await CourseAPI.getSubjects(term);
+				console.log('Subjects received:', data);
+
+				setSubjects(data);
 			} catch (err) {
+				console.error('Error fetching subjects:', err);
 				setError('Failed to fetch subjects');
-				console.error(err);
 			} finally {
 				setLoading(false);
 			}
@@ -71,12 +86,27 @@ export function useCourseSearch() {
 	}) => {
 		try {
 			setLoading(true);
-			const data = await CourseAPI.searchCourses(params);
-			setCourses(data);
 			setError(null);
+			setCourses([]); // Clear previous results
+
+			console.log('Searching courses with params:', params);
+
+			if (!params.term) {
+				setError('Term is required for course search');
+				return;
+			}
+
+			const data = await CourseAPI.searchCourses(params);
+			console.log('Course search results:', data);
+
+			setCourses(data);
+
+			if (data.length === 0) {
+				setError('No courses found matching your search criteria');
+			}
 		} catch (err) {
-			setError('Failed to search courses');
-			console.error(err);
+			console.error('Error searching courses:', err);
+			setError('Failed to search courses. Please try again.');
 		} finally {
 			setLoading(false);
 		}
@@ -93,12 +123,16 @@ export function useAIPlan() {
 	const generatePlan = async (interest: string, years: number = 2) => {
 		try {
 			setLoading(true);
-			const data = await CourseAPI.suggestPlan(interest, years);
-			setPlan(data);
 			setError(null);
+
+			console.log('Generating AI plan...', { interest, years });
+			const data = await CourseAPI.suggestPlan(interest, years);
+			console.log('AI plan generated:', data);
+
+			setPlan(data);
 		} catch (err) {
-			setError('Failed to generate plan');
-			console.error(err);
+			console.error('Error generating AI plan:', err);
+			setError('Failed to generate plan. Please try again.');
 		} finally {
 			setLoading(false);
 		}

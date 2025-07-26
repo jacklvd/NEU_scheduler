@@ -17,17 +17,26 @@ server/
 │   │   ├── schema.py            # GraphQL schema definition
 │   │   ├── resolvers/
 │   │   │   ├── __init__.py
-│   │   │   └── course_resolver.py # Course query resolvers
+│   │   │   ├── auth_resolver.py # Authentication resolvers
+│   │   │   ├── course_resolver.py # Course query resolvers
+│   │   │   └── health_resolver.py # Health check resolvers
 │   │   └── types/
 │   │       ├── __init__.py
 │   │       ├── course.py        # Course GraphQL types
 │   │       ├── schedule.py      # Schedule GraphQL types
 │   │       └── user.py          # User GraphQL types
+│   ├── models/
+│   │   └── user.py              # User data models
 │   ├── neu_api/
 │   │   ├── __init__.py
 │   │   └── searchneu_client.py  # SearchNEU API client
 │   ├── services/
-│   │   └── html_parser.py       # HTML parsing utilities
+│   │   ├── auth.py              # Authentication services
+│   │   ├── email.py             # Email service implementation
+│   │   ├── email_factory.py     # Email service factory
+│   │   └── otp_cache.py         # OTP caching service
+│   ├── storage/
+│   │   └── r2_client.py         # Cloudflare R2 storage client
 │   └── worker/
 │       ├── __init__.py
 │       ├── celery_app.py        # Celery configuration
@@ -35,7 +44,8 @@ server/
 ├── poetry.lock                  # Poetry lock file
 ├── pyproject.toml              # Python dependencies & config
 ├── README.md                   # This file
-└── .env                        # Environment variables
+├── .env                        # Environment variables
+└── .env.example                # Environment variables template
 ```
 
 ## Installation & Setup
@@ -62,12 +72,13 @@ server/
 
 3. **Set up environment variables:**
 
-   Copy the provided `.env` file and configure your settings:
+   Copy the example environment file and configure your settings:
 
    ```bash
-   # Copy .env file if you have one, or create it manually
-   # The following variables are required:
+   cp .env.example .env
    ```
+
+   Then edit `.env` with your actual configuration values.
 
 4. **Start Redis (if running locally):**
 
@@ -101,13 +112,21 @@ NU_BANNER_BASE_URL=https://nubanner.neu.edu/StudentRegistrationSsb/ssb/
 # Redis Configuration
 REDIS_URL=redis://localhost:6379
 
-# OpenAI Configuration (for AI features)
-OPENAI_API_KEY=your_openai_api_key_here
-
 # JWT Authentication
 JWT_SECRET_KEY=your-super-secret-jwt-key-change-this-in-production
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=30
+
+# Email Configuration
+EMAIL_PROVIDER=your_preferred_email_provider
+EMAIL_API_KEY=your_email_api_key
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+
+# Cloudflare R2 Configuration
+R2_ACCOUNT_ID=your_r2_account_id
+R2_ACCESS_KEY_ID=your_r2_access_key
+R2_SECRET_ACCESS_KEY=your_r2_secret_key
+R2_BUCKET_NAME=your_bucket_name
 
 # Application Settings
 DEBUG=true
@@ -183,35 +202,44 @@ poetry run black app/
 
 - **FastAPI Framework:** Modern, fast web framework for building APIs
 - **GraphQL API:** Flexible query language for efficient data fetching
+- **Authentication System:** JWT-based authentication with OTP verification
+- **Email Services:** Multi-provider email service with factory pattern
+- **User Management:** Complete user registration and authentication flow
+- **Course Search:** Integration with Northeastern's course search API
+- **Health Monitoring:** Comprehensive health check endpoints
+- **File Storage:** Cloudflare R2 integration for file uploads
+- **Background Tasks:** Celery integration for async task processing
 - **Pydantic Models:** Data validation using Python type annotations
 - **Redis Integration:** Caching and session storage
-- **Celery Integration:** Background task processing
-- **SearchNEU API:** Integration with Northeastern's course search
-- **AI-Powered Features:** OpenAI integration for course recommendations
 - **CORS Support:** Cross-origin resource sharing for frontend integration
-- **Authentication:** JWT-based authentication system
+- **Environment Configuration:** Flexible configuration management
 
 ## Technology Stack
 
 - **Web Framework:** FastAPI
 - **GraphQL:** Strawberry GraphQL
-- **Database ORM:** (To be added)
+- **Authentication:** JWT with OTP verification
+- **Email Services:** Multiple email providers support
+- **File Storage:** Cloudflare R2
 - **Caching:** Redis
 - **Background Tasks:** Celery
 - **HTTP Client:** httpx
 - **Configuration:** Pydantic Settings
 - **Environment Management:** python-dotenv
+- **Data Models:** Pydantic models
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Config import failed error:**
+
    - Ensure your `.env` file is properly configured
    - Check that Redis is running
    - Verify all required environment variables are set
 
 2. **Port already in use:**
+
    - Change the port in the uvicorn command: `--port 8001`
    - Kill the process using the port: `lsof -ti:8000 | xargs kill -9` (macOS/Linux)
 
