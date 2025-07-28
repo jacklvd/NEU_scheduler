@@ -127,6 +127,8 @@ export class CourseAPI {
           year
           term
           courses
+          credits
+          notes
         }
       }
     `;
