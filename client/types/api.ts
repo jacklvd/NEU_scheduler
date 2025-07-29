@@ -35,6 +35,8 @@ export interface SuggestedPlan {
 	year: number;
 	term: string;
 	courses: string[];
+	credits?: number;
+	notes?: string;
 }
 
 export interface ApiResponse<T> {

@@ -90,6 +90,8 @@ export const SUGGEST_PLAN = `
       year
       term
       courses
+      credits
+      notes
     }
   }
 `;
