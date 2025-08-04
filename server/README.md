@@ -179,7 +179,7 @@ poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000
 Start Celery worker for background task processing:
 
 ```bash
-poetry run celery -A app.worker.celery_app worker --loglevel=info
+poetry run celery -A app.worker.celery_app worker --loglevel=debug --pool=solo
 ```
 
 ### Testing

@@ -364,9 +364,9 @@ class Query(CourseQuery, AuthQuery, HealthQuery, ScheduleQuery):
         """Get information about cached course data"""
         try:
             from app.config import settings
-            import redis
             
-            redis_client = redis.Redis.from_url(settings.redis_url)
+            from app.redis_client import get_redis_client
+            redis_client = get_redis_client()
             
             # Check cache status
             cache_keys = redis_client.keys("subject_courses:*")

@@ -1,7 +1,6 @@
 import asyncio
 import httpx
 from typing import List, Dict, Any, Optional
-import redis
 import json
 from app.config import settings
 
@@ -9,7 +8,8 @@ from app.config import settings
 class SearchNEUClient:
     def __init__(self):
         self.base_url = settings.nu_banner_base_url
-        self.redis_client = redis.Redis.from_url(settings.redis_url)
+        from app.redis_client import get_redis_client
+        self.redis_client = get_redis_client()
         self.session_cookies = {}
 
     async def _make_request(
