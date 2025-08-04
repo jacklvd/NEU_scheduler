@@ -17,10 +17,11 @@ from ...worker.tasks import (
     generate_ai_suggestion
 )
 from ...config import settings
-import redis
 
 # Initialize Redis for caching
-redis_client = redis.Redis.from_url(settings.redis_url)
+from app.redis_client import get_redis_client
+
+redis_client = get_redis_client()
 
 @strawberry.type
 class ScheduleQuery:
